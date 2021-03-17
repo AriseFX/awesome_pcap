@@ -7,38 +7,37 @@ static int ipv6_packet_process(struct prt_info *pi);
 static int detection_protocol_types(struct prt_info *pi);
 
 void data_callback(u_char *user, const struct pcap_pkthdr *h,
-                   const u_char *bytes) {
-    prt_info_t *pi = (prt_info_t *) user;
+                   const u_char *bytes)
+{
+    prt_info_t *pi = (prt_info_t *)user;
 
-    /*  统计packet 的数量 */
     pi->pkt_count++;
-    //记录 packet header
-    pi->pkthdr = (struct pcap_pkthdr *) h;
-    //只处理完整的包
+    pi->pkthdr = (struct pcap_pkthdr *)h;
+    // only handle effective packet
     if (h->caplen != h->len)
         return;
-    //只处理ip报文
-    pi->ethhdr = (struct ethhdr *) bytes;
+    // eth packet
+    pi->ethhdr = (struct ethhdr *)bytes;
     if (ntohs(pi->ethhdr->h_proto) != ETH_P_IP)
         return;
-    /* 累计ip数据包数量 */
     pi->ip_count++;
-    /*  对ip报文进行分析 */
-    pi->iphdr = (struct iphdr *) (bytes + sizeof(struct ethhdr)); /*  对ip header指针赋值 */
+    // parse
+    pi->iphdr = (struct iphdr *)(bytes + sizeof(struct ethhdr));
     ip_packet_process(pi);
 }
 
-static int ip_packet_process(struct prt_info *pi) {
-    /*ipv6接口*/
-    if (pi->iphdr->version == 6) {
+static int ip_packet_process(struct prt_info *pi)
+{
+    // ipv6
+    if (pi->iphdr->version == 6)
+    {
         ipv6_packet_process(pi);
         return 0;
     }
-    /*ipv6报文*/
     if (pi->iphdr->version != 4)
         return 0;
 
-    /*ipv4报文*/
+    // ipv4
     pi->ipv4_count++;
 
     /*
@@ -60,7 +59,8 @@ static int ip_packet_process(struct prt_info *pi) {
     return 0;
 }
 
-static int ipv6_packet_process(struct prt_info *pi) {
+static int ipv6_packet_process(struct prt_info *pi)
+{
     return 0;
 }
 
@@ -71,52 +71,55 @@ static int ipv6_packet_process(struct prt_info *pi) {
  *  返回2， 代表tftp协议
  *  。。。。 协议类型在protocol.h 中定义
  */
-static int detection_protocol_types(struct prt_info *pi) {
+static int detection_protocol_types(struct prt_info *pi)
+{
     int ret = PRO_UNKNOWN;
     int i;
 
     /* 区分upd 和 tcp协议，  */
-    switch (pi->iphdr->protocol) {
+    switch (pi->iphdr->protocol)
+    {
 
-        case IPPROTO_TCP:       /*  TCP 协议 */
-            pi->tcphdr = (struct tcphdr *) ((char *) pi->iphdr + (pi->iphdr->ihl * 4));
+    case IPPROTO_TCP: /*  TCP 协议 */
+        pi->tcphdr = (struct tcphdr *)((char *)pi->iphdr + (pi->iphdr->ihl * 4));
 
-            for (i = 0; i < PRO_TYPES_MAX; i++) {
+        for (i = 0; i < PRO_TYPES_MAX; i++)
+        {
 
-                if (pi->pro_detec[i].flag == FLAG_TCP) {
-                    if ((pi->pro_detec[i].pro_detec != NULL)
-                        && pi->pro_detec[i].pro_detec(pi) != 0) {
-                        ret = i; /*  i指代某种协议类型 */
-                        break;
-                    }
+            if (pi->pro_detec[i].flag == FLAG_TCP)
+            {
+                if ((pi->pro_detec[i].pro_detec != NULL) && pi->pro_detec[i].pro_detec(pi) != 0)
+                {
+                    ret = i; /*  i指代某种协议类型 */
+                    break;
                 }
             }
+        }
 
-        case IPPROTO_UDP:       /*  UDP协议 */
-            pi->udphdr = (struct udphdr *) ((char *) pi->iphdr + (pi->iphdr->ihl * 4));
+    case IPPROTO_UDP: /*  UDP协议 */
+        pi->udphdr = (struct udphdr *)((char *)pi->iphdr + (pi->iphdr->ihl * 4));
 
-            for (i = 0; i < PRO_TYPES_MAX; i++) {
+        for (i = 0; i < PRO_TYPES_MAX; i++)
+        {
 
-                if (pi->pro_detec[i].flag == FLAG_UDP) {
-                    if ((pi->pro_detec[i].pro_detec != NULL)
-                        && pi->pro_detec[i].pro_detec(pi) != 0) {
-                        ret = i; /*  i指代某种协议类型 */
-                        break;
-                    }
+            if (pi->pro_detec[i].flag == FLAG_UDP)
+            {
+                if ((pi->pro_detec[i].pro_detec != NULL) && pi->pro_detec[i].pro_detec(pi) != 0)
+                {
+                    ret = i; /*  i指代某种协议类型 */
+                    break;
                 }
             }
+        }
 
-            break;
+        break;
 
-        default :
-            break;
-            /* Nothing to do */
+    default:
+        break;
+        /* Nothing to do */
     }
 
-
     /*  应用协议 */
-
-
 
     return ret;
 }

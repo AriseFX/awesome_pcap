@@ -4,7 +4,6 @@
 
 #include "main.h"
 
-/*  用于识别ssh，  */
 
 extern int detec_ssh(struct prt_info *pi);
 
