@@ -17,6 +17,7 @@
 #include <arpa/inet.h>
 
 #include <linux/ip.h>
+#include <linux/ipv6.h>
 #include <netinet/in.h>
 
 #include <linux/tcp.h>
