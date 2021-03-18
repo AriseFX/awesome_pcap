@@ -23,12 +23,23 @@ void data_callback(u_char *user, const struct pcap_pkthdr *h,
     // ethhdr
     struct ethhdr *_ethhdr = (struct ethhdr *)bytes;
     pi->ethhdr = _ethhdr;
-    if (ntohs(pi->ethhdr->h_proto) != ETH_P_IP)
-        return;
     pi->ip_count++;
     // iphdr
-    struct iphdr *_iphdr = (struct iphdr *)offsetptr((u_char *)_ethhdr, sizeof(struct ethhdr));
-    pi->iphdr = _iphdr;
+    uint p = ntohs(_ethhdr->h_proto);
+    if (p == ETH_P_IP)
+    { // ipv4
+        struct iphdr *_iphdr = (struct iphdr *)offsetptr((u_char *)_ethhdr, sizeof(struct ethhdr));
+        pi->ipvnhdr = _iphdr;
+    }
+    else if (p == ETH_P_IPV6)
+    { // ipv6
+        struct ipv6hdr *_iphdr = (struct ipv6hdr *)offsetptr((u_char *)_ethhdr, sizeof(struct ipv6hdr));
+        pi->ipvnhdr = _iphdr;
+    }
+    else
+    {
+        return;
+    }
 
     ip_packet_process(pi);
 }
@@ -36,12 +47,12 @@ void data_callback(u_char *user, const struct pcap_pkthdr *h,
 static int ip_packet_process(struct prt_info *pi)
 {
     // ipv6
-    if (pi->iphdr->version == 6)
+    if (ntohs(pi->ethhdr->h_proto) == ETH_P_IPV6)
     {
         ipv6_packet_process(pi);
         return 0;
     }
-    if (pi->iphdr->version != 4)
+    if (ntohs(pi->ethhdr->h_proto) != ETH_P_IP)
         return 0;
 
     // ipv4
@@ -52,7 +63,7 @@ static int ip_packet_process(struct prt_info *pi)
      * 当13位偏移量为0情况下，  一种是未分片，一种是第一个分片
      * 当13位偏移量非0， 一定是第二 or 第N分片
      */
-    if ((ntohs(pi->iphdr->frag_off) & 0x1FFF) != 0)
+    if ((ntohs(((struct iphdr *)(pi->ipvnhdr))->frag_off) & 0x1FFF) != 0)
         return 0;
 
     /* 探测， 应用协议类型 ,
@@ -68,6 +79,7 @@ static int ip_packet_process(struct prt_info *pi)
 
 static int ipv6_packet_process(struct prt_info *pi)
 {
+    pi->ipv6_count++;
     return 0;
 }
 
@@ -82,13 +94,13 @@ static int detection_protocol_types(struct prt_info *pi)
 {
     int ret = PRO_UNKNOWN;
     int i;
-
+    struct iphdr *_iphdr = (struct iphdr *)(pi->ipvnhdr);
     /* 区分upd 和 tcp协议，  */
-    switch (pi->iphdr->protocol)
+    switch (_iphdr->protocol)
     {
 
     case IPPROTO_TCP: /*  TCP 协议 */
-        pi->tcphdr = (struct tcphdr *)offsetptr((u_char *)pi->iphdr, (pi->iphdr->ihl * 4));
+        pi->tcphdr = (struct tcphdr *)offsetptr((u_char *)_iphdr, (_iphdr->ihl * 4));
 
         for (i = 0; i < PRO_TYPES_MAX; i++)
         {
@@ -104,7 +116,7 @@ static int detection_protocol_types(struct prt_info *pi)
         }
 
     case IPPROTO_UDP: /*  UDP协议 */
-        pi->udphdr = (struct udphdr *)offsetptr((u_char *)pi->iphdr, (pi->iphdr->ihl * 4));
+        pi->udphdr = (struct udphdr *)offsetptr((u_char *)_iphdr, (_iphdr->ihl * 4));
 
         for (i = 0; i < PRO_TYPES_MAX; i++)
         {

@@ -38,6 +38,7 @@ typedef struct prt_info
     u32_t pkt_count;  /*  用于统计文件中， 所有patcket的数量 */
     u32_t ip_count;   /* IP 报文的数量， */
     u32_t ipv4_count; /* IPV4报文的数量 */
+    u32_t ipv6_count; /* IPV6报文的数量 */
 
     /* .... 视需添加。。。 */
 
@@ -51,7 +52,7 @@ typedef struct prt_info
      * packet header， eth_header, ip_header, tcp_header or udp_header, data*/
     struct pcap_pkthdr *pkthdr;
     struct ethhdr *ethhdr;
-    struct iphdr *iphdr;
+    void *ipvnhdr;
     struct tcphdr *tcphdr;
     struct udphdr *udphdr;
 
