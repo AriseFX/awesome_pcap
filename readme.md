@@ -6,12 +6,14 @@
 - [ ] tcpdump pcap file parse support
   - [ ] ethernet frame
   - protocol
-    - [ ] tcp
-      - [ ] http
-      - [ ] mqtt
-      - [ ] RESP (redis protocol)
-      - [ ] mysql protocol
-    - [ ] udp
+    - [x] ipv4
+    - [x] ipv6
+      - [ ] tcp
+        - [ ] http
+        - [ ] mqtt
+        - [ ] RESP (redis protocol)
+        - [ ] mysql protocol
+      - [ ] udp
 - [ ] GUI support 
   - gtk
 - Resource limit
