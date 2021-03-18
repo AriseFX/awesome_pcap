@@ -19,3 +19,10 @@
   - [ ] cpu limit
   - [ ] rate limit
   - [ ] memory limit
+
+#### build
+- Debug
+  make build
+- Release
+  make release
+  > will enable O1 optimization
