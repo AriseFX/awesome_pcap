@@ -30,11 +30,11 @@ int main(int argc, char *argv[])
     }
     pcap_loop(p, -1, data_callback, (u_char *)info);
     prt_info_out(info);
+    pcap_close(p);
 clean:
     prt_info_free(info);
     fflush(stdout);
     fflush(stderr);
 exit:
-    pcap_close(p);
     return ret;
 }
