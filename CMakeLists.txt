@@ -33,7 +33,7 @@ if ( mode STREQUAL "debug")
   message(
     STATUS
     "${BoldBlue}"
-    "enable debug modo"
+    "enable debug mode"
     "${ColourReset}"
   )
 endif()
