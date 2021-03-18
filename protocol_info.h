@@ -5,8 +5,6 @@
 
 #include "main.h"
 
-
-
 /**
  *  文件用于，对协议信息的定义，和初始化
  * 
@@ -18,7 +16,6 @@ typedef unsigned short u16_t;
 typedef unsigned int u32_t;
 typedef unsigned long long u64_t;
 
-
 /*  应用协议探测引擎，函数指针 */
 
 struct prt_info;
@@ -28,19 +25,19 @@ typedef int (*detec_pro_t)(struct prt_info *pi);
 #define FLAG_TCP 0
 #define FLAG_UDP 1
 
-struct pro_detec_info {
-    int flag;               /* 0, TCP,  1, UDP, ... */
+struct pro_detec_info
+{
+    int flag;              /* 0, TCP,  1, UDP, ... */
     detec_pro_t pro_detec; /*  应用协议探测引擎 */
 };
 
 /*  定义一个结构体， 用于记录和输出结果相关的一些信息 */
 
-
-
-typedef struct prt_info {
-    u32_t pkt_count;              /*  用于统计文件中， 所有patcket的数量 */
-    u32_t ip_count;               /* IP 报文的数量， */
-    u32_t ipv4_count;             /* IPV4报文的数量 */
+typedef struct prt_info
+{
+    u32_t pkt_count;  /*  用于统计文件中， 所有patcket的数量 */
+    u32_t ip_count;   /* IP 报文的数量， */
+    u32_t ipv4_count; /* IPV4报文的数量 */
 
     /* .... 视需添加。。。 */
 
@@ -64,8 +61,7 @@ typedef struct prt_info {
 extern prt_info_t *new_prt_info(void);
 
 /* 释放协议信息 */
-extern int prt_info_free(prt_info_t *pi);
-
+void prt_info_free(prt_info_t *pi);
 
 /*  协议信息输出 */
 
