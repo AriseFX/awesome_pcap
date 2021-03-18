@@ -1,5 +1,9 @@
 #include "main.h"
 
+static u_char *offsetptr(u_char *bytes, size_t offset)
+{
+    return bytes + offset;
+}
 static int ip_packet_process(struct prt_info *pi);
 
 static int ipv6_packet_process(struct prt_info *pi);
@@ -16,13 +20,16 @@ void data_callback(u_char *user, const struct pcap_pkthdr *h,
     // only handle effective packet
     if (h->caplen != h->len)
         return;
-    // eth packet
-    pi->ethhdr = (struct ethhdr *)bytes;
+    // ethhdr
+    struct ethhdr *_ethhdr = (struct ethhdr *)bytes;
+    pi->ethhdr = _ethhdr;
     if (ntohs(pi->ethhdr->h_proto) != ETH_P_IP)
         return;
     pi->ip_count++;
-    // parse
-    pi->iphdr = (struct iphdr *)(bytes + sizeof(struct ethhdr));
+    // iphdr
+    struct iphdr *_iphdr = (struct iphdr *)offsetptr((u_char *)_ethhdr, sizeof(struct ethhdr));
+    pi->iphdr = _iphdr;
+
     ip_packet_process(pi);
 }
 
@@ -81,7 +88,7 @@ static int detection_protocol_types(struct prt_info *pi)
     {
 
     case IPPROTO_TCP: /*  TCP 协议 */
-        pi->tcphdr = (struct tcphdr *)((char *)pi->iphdr + (pi->iphdr->ihl * 4));
+        pi->tcphdr = (struct tcphdr *)offsetptr((u_char *)pi->iphdr, (pi->iphdr->ihl * 4));
 
         for (i = 0; i < PRO_TYPES_MAX; i++)
         {
@@ -97,7 +104,7 @@ static int detection_protocol_types(struct prt_info *pi)
         }
 
     case IPPROTO_UDP: /*  UDP协议 */
-        pi->udphdr = (struct udphdr *)((char *)pi->iphdr + (pi->iphdr->ihl * 4));
+        pi->udphdr = (struct udphdr *)offsetptr((u_char *)pi->iphdr, (pi->iphdr->ihl * 4));
 
         for (i = 0; i < PRO_TYPES_MAX; i++)
         {
