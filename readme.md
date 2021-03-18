@@ -21,8 +21,10 @@
   - [ ] memory limit
 
 #### build
-- Debug
-  make build
-- Release
-  make release
-  > will enable O1 optimization
+```shell
+# debug
+make build
+# release
+# will enable 01 optimization
+make release
+```
