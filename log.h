@@ -21,7 +21,7 @@
 #define log_dbg(...)                                                  \
         do                                                            \
         {                                                             \
-                log_info("%s:%s:%d\t", __FILE__, __func__, __LINE__); \
+                log_info("%s:%d:%s\t", __FILE__, __LINE__, __func__); \
                 log_info(__VA_ARGS__);                                \
         } while (0)
 
