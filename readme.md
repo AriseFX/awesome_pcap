@@ -4,7 +4,7 @@
 
 #### TODO LIST
 - [ ] tcpdump pcap file parse support
-  - [ ] ethernet frame
+  - [x] ethernet frame
   - protocol
     - [x] ipv4
     - [x] ipv6
