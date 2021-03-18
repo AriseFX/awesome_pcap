@@ -17,14 +17,14 @@ int main(int argc, char *argv[])
         return 1;
     }
     log_dbg("Open pcap %s\n", argv[1]);
-    int ret = 0;
+    int ret = EXIT_SUCCESS;
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_t *p = pcap_open_offline(argv[1], errbuf);
 
     if (p == NULL)
     {
-        fprintf(stderr, "Error for pcap_open_offline %s:%s\n", argv[1], errbuf);
-        ret = 1;
+        log_err("Error for pcap_open_offline :%s\n", errbuf);
+        ret = EXIT_FAILURE;
         goto err;
     }
     pcap_loop(p, -1, data_callback, (u_char *)info);

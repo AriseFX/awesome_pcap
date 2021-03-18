@@ -15,8 +15,7 @@ static char *pro_string[PRO_TYPES_MAX] = {
  */
 prt_info_t *new_prt_info(void)
 {
-    prt_info_t *pi = p_malloc(sizeof(*pi));
-    memset(pi, 0, sizeof(*pi));
+    prt_info_t *pi = p_calloc(1, sizeof(*pi));
 
     /* 初始化应用协议探测引擎 */
 
@@ -33,10 +32,9 @@ prt_info_t *new_prt_info(void)
 
 /* 对协议信息的 释放 */
 
-int prt_info_free(prt_info_t *pi)
+void prt_info_free(prt_info_t *pi)
 {
-    p_free(pi);
-    return 0;
+    return p_free(pi);
 }
 
 /* 对协议信息 输出 */

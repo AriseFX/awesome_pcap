@@ -21,6 +21,16 @@ void *p_malloc(size_t size)
   atomicIncr(used_memory, size);
   return ptr;
 }
+
+void *p_calloc(size_t nmemb, size_t size)
+{
+  void *ptr = calloc(nmemb, size);
+  if (!ptr)
+    pmalloc_oom(size);
+  size = pmalloc_size(ptr);
+  atomicIncr(used_memory, size);
+  return ptr;
+}
 void p_free(void *ptr)
 {
   if (ptr == NULL)
