@@ -15,3 +15,7 @@
     - [ ] udp
 - [ ] GUI support 
   - gtk
+- Resource limit
+  - [ ] cpu limit
+  - [ ] rate limit
+  - [ ] memory limit
