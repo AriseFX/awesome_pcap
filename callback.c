@@ -4,9 +4,9 @@ static u_char *offsetptr(u_char *bytes, size_t offset)
 {
     return bytes + offset;
 }
-static int ip_packet_process(struct prt_info *pi);
+static void ipv4_packet_process(struct prt_info *pi);
 
-static int ipv6_packet_process(struct prt_info *pi);
+static void ipv6_packet_process(struct prt_info *pi);
 
 static int detection_protocol_types(struct prt_info *pi);
 
@@ -22,6 +22,24 @@ void data_callback(u_char *user, const struct pcap_pkthdr *h,
         return;
     // ethhdr
     struct ethhdr *_ethhdr = (struct ethhdr *)bytes;
+    log_info("source     :\t%x:%x:%x:%x:%x:%x\n",
+             /* MAC prefix begin */
+             _ethhdr->h_source[0],
+             _ethhdr->h_source[1],
+             _ethhdr->h_source[2],
+             /* MAC prefix end */
+             _ethhdr->h_source[3],
+             _ethhdr->h_source[4],
+             _ethhdr->h_source[5]);
+    log_info("destination:\t%x:%x:%x:%x:%x:%x\n",
+             /* MAC prefix begin */
+             _ethhdr->h_dest[0],
+             _ethhdr->h_dest[1],
+             _ethhdr->h_dest[2],
+             /* MAC prefix end */
+             _ethhdr->h_dest[3],
+             _ethhdr->h_dest[4],
+             _ethhdr->h_dest[5]);
     pi->ethhdr = _ethhdr;
     pi->ip_count++;
     // iphdr
@@ -38,22 +56,23 @@ void data_callback(u_char *user, const struct pcap_pkthdr *h,
     }
     else
     {
+        log_dbg("Unknow ethhdr.h_proto %d\n", p);
         return;
     }
-
-    ip_packet_process(pi);
+    // try ipv4 first
+    ipv4_packet_process(pi);
 }
 
-static int ip_packet_process(struct prt_info *pi)
+static void ipv4_packet_process(struct prt_info *pi)
 {
-    // ipv6
+    // if match ipv6, then turn to ipv6_packet_process.
     if (ntohs(pi->ethhdr->h_proto) == ETH_P_IPV6)
     {
         ipv6_packet_process(pi);
-        return 0;
+        return;
     }
-    if (ntohs(pi->ethhdr->h_proto) != ETH_P_IP)
-        return 0;
+    if (ntohs(pi->ethhdr->h_proto) != ETH_P_IP) // check again
+        return;
 
     // ipv4
     pi->ipv4_count++;
@@ -63,8 +82,9 @@ static int ip_packet_process(struct prt_info *pi)
      * 当13位偏移量为0情况下，  一种是未分片，一种是第一个分片
      * 当13位偏移量非0， 一定是第二 or 第N分片
      */
-    if ((ntohs(((struct iphdr *)(pi->ipvnhdr))->frag_off) & 0x1FFF) != 0)
-        return 0;
+    struct iphdr *_iphdr = (struct iphdr *)(pi->ipvnhdr);
+    if ((ntohs(_iphdr->frag_off) & 0x1FFF) != 0)
+        return;
 
     /* 探测， 应用协议类型 ,
      * detection_protocol_types 返回就是应用协议类型。 */
@@ -74,13 +94,13 @@ static int ip_packet_process(struct prt_info *pi)
     pi->app_pro_count[a]++;
     /* 统计协议类型， 并记录，  （包括， IP地址） */
 
-    return 0;
+    return;
 }
-
-static int ipv6_packet_process(struct prt_info *pi)
+// TODO
+static void ipv6_packet_process(struct prt_info *pi)
 {
     pi->ipv6_count++;
-    return 0;
+    return;
 }
 
 /**
@@ -95,16 +115,13 @@ static int detection_protocol_types(struct prt_info *pi)
     int ret = PRO_UNKNOWN;
     int i;
     struct iphdr *_iphdr = (struct iphdr *)(pi->ipvnhdr);
-    /* 区分upd 和 tcp协议，  */
+    /* protocol assert */
     switch (_iphdr->protocol)
     {
-
-    case IPPROTO_TCP: /*  TCP 协议 */
+    case IPPROTO_TCP: /*  TCP  */
         pi->tcphdr = (struct tcphdr *)offsetptr((u_char *)_iphdr, (_iphdr->ihl * 4));
-
         for (i = 0; i < PRO_TYPES_MAX; i++)
         {
-
             if (pi->pro_detec[i].flag == FLAG_TCP)
             {
                 if ((pi->pro_detec[i].pro_detec != NULL) && pi->pro_detec[i].pro_detec(pi) != 0)
@@ -114,13 +131,11 @@ static int detection_protocol_types(struct prt_info *pi)
                 }
             }
         }
-
-    case IPPROTO_UDP: /*  UDP协议 */
+        break;
+    case IPPROTO_UDP: /*  UDP  */
         pi->udphdr = (struct udphdr *)offsetptr((u_char *)_iphdr, (_iphdr->ihl * 4));
-
         for (i = 0; i < PRO_TYPES_MAX; i++)
         {
-
             if (pi->pro_detec[i].flag == FLAG_UDP)
             {
                 if ((pi->pro_detec[i].pro_detec != NULL) && pi->pro_detec[i].pro_detec(pi) != 0)
@@ -130,15 +145,10 @@ static int detection_protocol_types(struct prt_info *pi)
                 }
             }
         }
-
         break;
-
     default:
+        /*  void  */
         break;
-        /* Nothing to do */
     }
-
-    /*  应用协议 */
-
     return ret;
 }
