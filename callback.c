@@ -1,4 +1,10 @@
 #include "main.h"
+#define NIPQUAD_FMT "%u.%u.%u.%u"
+#define NIPQUAD(addr)                \
+    ((unsigned char *)&addr)[0],     \
+        ((unsigned char *)&addr)[1], \
+        ((unsigned char *)&addr)[2], \
+        ((unsigned char *)&addr)[3]
 
 static u_char *offsetptr(u_char *bytes, size_t offset)
 {
@@ -20,9 +26,9 @@ void data_callback(u_char *user, const struct pcap_pkthdr *h,
     // only handle effective packet
     if (h->caplen != h->len)
         return;
-    // ethhdr
+    // Ethernet packet
     struct ethhdr *_ethhdr = (struct ethhdr *)bytes;
-    log_info("source     :\t%x:%x:%x:%x:%x:%x\n",
+    log_info("source mac     \t\t%x:%x:%x:%x:%x:%x\n",
              /* MAC prefix begin */
              _ethhdr->h_source[0],
              _ethhdr->h_source[1],
@@ -31,7 +37,7 @@ void data_callback(u_char *user, const struct pcap_pkthdr *h,
              _ethhdr->h_source[3],
              _ethhdr->h_source[4],
              _ethhdr->h_source[5]);
-    log_info("destination:\t%x:%x:%x:%x:%x:%x\n",
+    log_info("destination mac\t\t%x:%x:%x:%x:%x:%x\n",
              /* MAC prefix begin */
              _ethhdr->h_dest[0],
              _ethhdr->h_dest[1],
@@ -42,7 +48,7 @@ void data_callback(u_char *user, const struct pcap_pkthdr *h,
              _ethhdr->h_dest[5]);
     pi->ethhdr = _ethhdr;
     pi->ip_count++;
-    // iphdr
+    // Internet Protocol
     uint p = ntohs(_ethhdr->h_proto);
     if (p == ETH_P_IP)
     { // ipv4
@@ -86,13 +92,13 @@ static void ipv4_packet_process(struct prt_info *pi)
     if ((ntohs(_iphdr->frag_off) & 0x1FFF) != 0)
         return;
 
-    /* 探测， 应用协议类型 ,
-     * detection_protocol_types 返回就是应用协议类型。 */
+    log_info("source ip     \t\t" NIPQUAD_FMT "\n", NIPQUAD(_iphdr->saddr));
+    log_info("destination ip\t\t" NIPQUAD_FMT "\n", NIPQUAD(_iphdr->daddr));
+    log_info("iphdr checksum16\t0x%x\n", ntohs(_iphdr->check));
+    /* Transmission Control Protocol detection */
     int a = detection_protocol_types(pi);
 
-    /* 函数， 返回应用协议类型标志。  */
     pi->app_pro_count[a]++;
-    /* 统计协议类型， 并记录，  （包括， IP地址） */
 
     return;
 }
@@ -120,6 +126,9 @@ static int detection_protocol_types(struct prt_info *pi)
     {
     case IPPROTO_TCP: /*  TCP  */
         pi->tcphdr = (struct tcphdr *)offsetptr((u_char *)_iphdr, (_iphdr->ihl * 4));
+        log_info("source port     \t%d\n", ntohs(pi->tcphdr->source));
+        log_info("destination port\t%u\n", ntohs(pi->tcphdr->dest));
+        log_info("seq \t\t\t%u\n", ntohl(pi->tcphdr->seq));
         for (i = 0; i < PRO_TYPES_MAX; i++)
         {
             if (pi->pro_detec[i].flag == FLAG_TCP)
