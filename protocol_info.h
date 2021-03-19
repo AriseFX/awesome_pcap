@@ -52,6 +52,7 @@ typedef struct prt_info
      * packet header， eth_header, ip_header, tcp_header or udp_header, data*/
     struct pcap_pkthdr *pkthdr;
     struct ethhdr *ethhdr;
+    // ethpacket header maybe ipv4 or ipv6
     void *ipvnhdr;
     struct tcphdr *tcphdr;
     struct udphdr *udphdr;
