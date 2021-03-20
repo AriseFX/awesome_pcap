@@ -1,4 +1,20 @@
 #include "main.h"
+
+/*
+ * Display a mac address in readable format.
+ * 0-2 max-prefix
+ */
+#define MAC_FMT "%x:%x:%x:%x:%x:%x"
+#define MAC(addr)                                         \
+    ((unsigned char *)&addr)[0],                          \
+        ((unsigned char *)&addr)[1],                      \
+        ((unsigned char *)&addr)[2],                      \
+        ((unsigned char *)&addr)[3], /* MAC prefix end */ \
+        ((unsigned char *)&addr)[4],                      \
+        ((unsigned char *)&addr)[5]
+/*
+ * Display an IP address in readable format.
+ */
 #define NIPQUAD_FMT "%u.%u.%u.%u"
 #define NIPQUAD(addr)                \
     ((unsigned char *)&addr)[0],     \
@@ -28,24 +44,8 @@ void data_callback(u_char *user, const struct pcap_pkthdr *h,
         return;
     // Ethernet packet
     struct ethhdr *_ethhdr = (struct ethhdr *)bytes;
-    log_info("source mac     \t\t%x:%x:%x:%x:%x:%x\n",
-             /* MAC prefix begin */
-             _ethhdr->h_source[0],
-             _ethhdr->h_source[1],
-             _ethhdr->h_source[2],
-             /* MAC prefix end */
-             _ethhdr->h_source[3],
-             _ethhdr->h_source[4],
-             _ethhdr->h_source[5]);
-    log_info("destination mac\t\t%x:%x:%x:%x:%x:%x\n",
-             /* MAC prefix begin */
-             _ethhdr->h_dest[0],
-             _ethhdr->h_dest[1],
-             _ethhdr->h_dest[2],
-             /* MAC prefix end */
-             _ethhdr->h_dest[3],
-             _ethhdr->h_dest[4],
-             _ethhdr->h_dest[5]);
+    log_info("source mac     \t\t" MAC_FMT "\n", MAC(_ethhdr->h_source));
+    log_info("destination mac\t\t" MAC_FMT "\n", MAC(_ethhdr->h_dest));
     pi->ethhdr = _ethhdr;
     pi->ip_count++;
     // Internet Protocol
@@ -125,10 +125,17 @@ static int detection_protocol_types(struct prt_info *pi)
     switch (_iphdr->protocol)
     {
     case IPPROTO_TCP: /*  TCP  */
-        pi->tcphdr = (struct tcphdr *)offsetptr((u_char *)_iphdr, (_iphdr->ihl * 4));
-        log_info("source port     \t%d\n", ntohs(pi->tcphdr->source));
-        log_info("destination port\t%u\n", ntohs(pi->tcphdr->dest));
-        log_info("seq \t\t\t%u\n", ntohl(pi->tcphdr->seq));
+        pi->istcp = 1;
+        pi->tcp_udp_hdr = (struct tcphdr *)offsetptr((u_char *)_iphdr, (_iphdr->ihl * 4));
+        struct tcphdr *_tcphdr = (struct tcphdr *)(pi->tcp_udp_hdr);
+        log_info("source port     \t%d\n", ntohs(_tcphdr->source));
+        log_info("destination port\t%u\n", ntohs(_tcphdr->dest));
+        log_info("ack_seq \t\t\t%u\n", ntohl(_tcphdr->ack_seq));
+        log_info("seq \t\t\t%u\n", ntohl(_tcphdr->seq));
+        log_info("syn \t\t\t%u\n", (_tcphdr->syn));
+        log_info("ack \t\t\t%u\n", (_tcphdr->ack));
+        log_info("fin \t\t\t%u\n", (_tcphdr->fin));
+        log_info("rst \t\t\t%u\n", (_tcphdr->rst));
         for (i = 0; i < PRO_TYPES_MAX; i++)
         {
             if (pi->pro_detec[i].flag == FLAG_TCP)
@@ -142,7 +149,9 @@ static int detection_protocol_types(struct prt_info *pi)
         }
         break;
     case IPPROTO_UDP: /*  UDP  */
-        pi->udphdr = (struct udphdr *)offsetptr((u_char *)_iphdr, (_iphdr->ihl * 4));
+        pi->istcp = 0;
+        pi->tcp_udp_hdr = (struct udphdr *)offsetptr((u_char *)_iphdr, (_iphdr->ihl * 4));
+        struct udphdr *_udphdr = (struct udphdr *)(pi->tcp_udp_hdr);
         for (i = 0; i < PRO_TYPES_MAX; i++)
         {
             if (pi->pro_detec[i].flag == FLAG_UDP)
