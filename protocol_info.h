@@ -54,7 +54,7 @@ typedef struct prt_info
     struct ethhdr *ethhdr;
     // ethpacket header maybe ipv4 or ipv6
     void *ipvnhdr;
-    u8_t istcp;
+    u8_t istcp; // 1 tcp 0 udp
     void *tcp_udp_hdr;
 } prt_info_t;
 
