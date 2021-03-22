@@ -40,7 +40,6 @@
 #ifdef PRO_TYPES_SSH
 
 #include "ssh.h"
-#include "./deps/src/cJSON/cJSON.h"
 
 #endif /* PRO_TYPES_SSH */
 

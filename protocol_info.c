@@ -45,18 +45,37 @@ void *ptr_save(prt_info_t *pi)
     struct ethhdr *_ethhdr = p_malloc(sizeof(struct ethhdr));
     memcpy(_ethhdr, pi->ethhdr, sizeof(struct ethhdr));
     pi->ethhdr = _ethhdr;
-
-    void *_ipvnhdr = p_malloc(sizeof(*pi->ipvnhdr));
-    memcpy(_ipvnhdr, pi->ipvnhdr, sizeof(*pi->ipvnhdr));
+    /* ipv4 ipv6 copy */
+    void *_ipvnhdr;
+    u_int8_t p = ntohs(pi->ethhdr->h_proto);
+    if (p == ETH_P_IP)
+    {
+        _ipvnhdr = p_malloc(sizeof(struct iphdr));
+        memcpy(_ipvnhdr, pi->ipvnhdr, sizeof(struct iphdr));
+    }
+    else if (p == ETH_P_IPV6)
+    {
+        _ipvnhdr = p_malloc(sizeof(struct ipv6hdr));
+        memcpy(_ipvnhdr, pi->ipvnhdr, sizeof(struct ipv6hdr));
+    }
     pi->ipvnhdr = _ipvnhdr;
-
-    void *_tcp_udp_hdr = p_malloc(sizeof(*pi->tcp_udp_hdr));
-    memcpy(_tcp_udp_hdr, pi->tcp_udp_hdr, sizeof(*pi->tcp_udp_hdr));
+    /* _tcp_udp_hdr copy */
+    void *_tcp_udp_hdr;
+    if (pi->istcp)
+    {
+        _tcp_udp_hdr = p_malloc(sizeof(struct tcphdr));
+        memcpy(_tcp_udp_hdr, pi->tcp_udp_hdr, sizeof(struct tcphdr));
+    }
+    else
+    {
+        _tcp_udp_hdr = p_malloc(sizeof(struct udphdr));
+        memcpy(_tcp_udp_hdr, pi->tcp_udp_hdr, sizeof(struct udphdr));
+    }
     pi->tcp_udp_hdr = _tcp_udp_hdr;
     if (!pi->saved)
     {
         _data.ip_count++;
-        switch (pi->istcp && pi->ethhdr->h_proto)
+        switch (ntohs(pi->ethhdr->h_proto))
         {
         case ETH_P_IPV6:
             _data.ipv6_count++;
