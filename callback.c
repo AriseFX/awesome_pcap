@@ -1,28 +1,6 @@
 #include "main.h"
 
-/*
- * Display a mac address in readable format.
- * 0-2 max-prefix
- */
-#define MAC_FMT "%x:%x:%x:%x:%x:%x"
-#define MAC(addr)                                         \
-    ((unsigned char *)&addr)[0],                          \
-        ((unsigned char *)&addr)[1],                      \
-        ((unsigned char *)&addr)[2],                      \
-        ((unsigned char *)&addr)[3], /* MAC prefix end */ \
-        ((unsigned char *)&addr)[4],                      \
-        ((unsigned char *)&addr)[5]
-/*
- * Display an IP address in readable format.
- */
-#define NIPQUAD_FMT "%u.%u.%u.%u"
-#define NIPQUAD(addr)                \
-    ((unsigned char *)&addr)[0],     \
-        ((unsigned char *)&addr)[1], \
-        ((unsigned char *)&addr)[2], \
-        ((unsigned char *)&addr)[3]
-
-static u_char *offsetptr(u_char *bytes, size_t offset)
+static unsigned char *offsetptr(unsigned char *bytes, size_t offset)
 {
     return bytes + offset;
 }
@@ -32,8 +10,8 @@ static void ipv6_packet_process(struct prt_info *pi);
 
 static int detection_protocol_types(struct prt_info *pi);
 
-void data_callback(u_char *user, const struct pcap_pkthdr *h,
-                   const u_char *bytes)
+void data_callback(unsigned char *user, const struct pcap_pkthdr *h,
+                   const unsigned char *bytes)
 {
     _data.pkt_count++;
     prt_info_t *pi = new_prt_info();
@@ -52,15 +30,15 @@ void data_callback(u_char *user, const struct pcap_pkthdr *h,
     log_info("destination mac\t\t" MAC_FMT "\n", MAC(_ethhdr->h_dest));
     pi->ethhdr = _ethhdr;
     // Internet Protocol
-    uint p = ntohs(_ethhdr->h_proto);
+    unsigned int p = ntohs(_ethhdr->h_proto);
     if (p == ETH_P_IP)
     { // ipv4
-        struct iphdr *_iphdr = (struct iphdr *)offsetptr((u_char *)_ethhdr, sizeof(struct ethhdr));
+        struct iphdr *_iphdr = (struct iphdr *)offsetptr((unsigned char *)_ethhdr, sizeof(struct ethhdr));
         pi->ipvnhdr = _iphdr;
     }
     else if (p == ETH_P_IPV6)
     { // ipv6
-        struct ipv6hdr *_iphdr = (struct ipv6hdr *)offsetptr((u_char *)_ethhdr, sizeof(struct ipv6hdr));
+        struct ipv6hdr *_iphdr = (struct ipv6hdr *)offsetptr((unsigned char *)_ethhdr, sizeof(struct ipv6hdr));
         pi->ipvnhdr = _iphdr;
     }
     else
@@ -128,7 +106,7 @@ static int detection_protocol_types(struct prt_info *pi)
     {
     case IPPROTO_TCP: /*  TCP  */
         pi->istcp = 1;
-        pi->tcp_udp_hdr = (struct tcphdr *)offsetptr((u_char *)_iphdr, (_iphdr->ihl * 4));
+        pi->tcp_udp_hdr = (struct tcphdr *)offsetptr((unsigned char *)_iphdr, (_iphdr->ihl * 4));
         struct tcphdr *_tcphdr = (struct tcphdr *)(pi->tcp_udp_hdr);
         log_info("source port     \t%d\n", ntohs(_tcphdr->source));
         log_info("destination port\t%u\n", ntohs(_tcphdr->dest));
@@ -152,7 +130,7 @@ static int detection_protocol_types(struct prt_info *pi)
         break;
     case IPPROTO_UDP: /*  UDP  */
         pi->istcp = 0;
-        pi->tcp_udp_hdr = (struct udphdr *)offsetptr((u_char *)_iphdr, (_iphdr->ihl * 4));
+        pi->tcp_udp_hdr = (struct udphdr *)offsetptr((unsigned char *)_iphdr, (_iphdr->ihl * 4));
         struct udphdr *_udphdr = (struct udphdr *)(pi->tcp_udp_hdr);
         for (i = 0; i < PRO_TYPES_MAX; i++)
         {
