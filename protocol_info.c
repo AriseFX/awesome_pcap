@@ -53,6 +53,29 @@ void *ptr_save(prt_info_t *pi)
     void *_tcp_udp_hdr = p_malloc(sizeof(*pi->tcp_udp_hdr));
     memcpy(_tcp_udp_hdr, pi->tcp_udp_hdr, sizeof(*pi->tcp_udp_hdr));
     pi->tcp_udp_hdr = _tcp_udp_hdr;
+    if (!pi->saved)
+    {
+        _data.ip_count++;
+        switch (pi->istcp && pi->ethhdr->h_proto)
+        {
+        case ETH_P_IPV6:
+            _data.ipv6_count++;
+        case ETH_P_IP:
+            _data.ipv4_count++;
+        default:
+            break;
+        }
+        // store to _data
+        if (!_data.tail)
+        {
+            _data.head = _data.tail = pi;
+        }
+        else
+        {
+            _data.tail->next = pi;
+            _data.tail = pi;
+        }
+    }
     // finished
     pi->saved = 1;
     return pi;
@@ -71,28 +94,28 @@ void prt_info_free(prt_info_t *pi)
 }
 
 /* 对协议信息 输出 */
-int prt_info_out(const prt_info_t *pi)
+int prt_info_out()
 {
     /*  统计报文数量 */
     log_info("\nPacket: \n\n");
-    log_info("\t Packet count: %d\n ", pi->pkt_count);
-    log_info("\t IP packet  count: %d\n ", pi->ip_count);
-    log_info("\t IPV4 packet  count: %d\n ", pi->ipv4_count);
+    log_info("\t Packet count: %d\n ", _data.pkt_count);
+    log_info("\t IP packet  count: %d\n ", _data.ip_count);
+    log_info("\t IPV4 packet  count: %d\n ", _data.ipv4_count);
 
-    /* 输出已探测应用协议的包个数 */
+    // /* 输出已探测应用协议的包个数 */
 
-    log_info("\n\n Application Protocol : \n\n");
-    int i;
-    for (i = 1; i < PRO_TYPES_MAX; i++)
-    {
-        if (pi->app_pro_count[i] != 0)
-        {
-            log_info("\t%s:%u\n", pro_string[i], pi->app_pro_count[i]);
-        }
-    }
+    // log_info("\n\n Application Protocol : \n\n");
+    // int i;
+    // for (i = 1; i < PRO_TYPES_MAX; i++)
+    // {
+    //     if (pi->app_pro_count[i] != 0)
+    //     {
+    //         log_info("\t%s:%u\n", pro_string[i], pi->app_pro_count[i]);
+    //     }
+    // }
 
-    /* 输出未知类型的数据包数量 */
-    log_info("\t%s:%u\n", pro_string[0], pi->app_pro_count[0]);
+    // /* 输出未知类型的数据包数量 */
+    // log_info("\t%s:%u\n", pro_string[0], pi->app_pro_count[0]);
 
     return 0;
 }

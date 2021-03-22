@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 project(pcap_demo C)
-
+# CMAKE_BINARY_DIR === ./build/pcap_demo/
+# WROKDIR ./deps
+set(WROKDIR ${CMAKE_BINARY_DIR}/../..)
 #  COLOR DEFINE
 if(NOT WIN32)
 string(ASCII 27 Esc)
@@ -22,12 +24,27 @@ set(BoldCyan    "${Esc}[1;36m")
 set(BoldWhite   "${Esc}[1;37m")
 endif() # COLOR DEFINE END
 set(mode $ENV{MODE})
+set(build $ENV{onlyDeps})
 message(
   STATUS 
   "${BoldGreen}mode: " 
   ${mode} 
   "${ColourReset}"
 )
+message(
+  STATUS 
+  "${BoldGreen}build: " 
+  ${build} 
+  "${ColourReset}"
+)
+# deps
+
+include(cmake/cJSON.cmake) # cJSON
+
+if (build STREQUAL "true") 
+  return()
+endif()
+
 if ( mode STREQUAL "debug") 
   SET(CMAKE_BUILD_TYPE "Debug")  
   message(
@@ -44,13 +61,23 @@ if ( mode STREQUAL "debug")
   ) 
 endif()
 
-set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD 99) # C99
 
-aux_source_directory (. DIR_SRCS)
+aux_source_directory (. DIR_SRCS) # 搜索目录下所有源文件
 
 add_executable(pcap_demo 
 ${DIR_SRCS}
 )
+
+add_dependencies(pcap_demo cJSON)
+message(
+  STATUS
+  "${BoldRed}"
+  ${cJSONDownload}
+  "${ColourReset}"
+)
+target_link_libraries(pcap_demo ${CJSON_LIB})
+target_include_directories(pcap_demo PRIVATE ${CJSON_DIR})
 
 if ((CMAKE_COMPILER_IS_GNUCC ) AND ( mode STREQUAL "release"))
   message(
@@ -61,7 +88,6 @@ if ((CMAKE_COMPILER_IS_GNUCC ) AND ( mode STREQUAL "release"))
   )
   add_compile_options(-O1)
 endif() # CMAKE_COMPILER_IS_GNUCXX
-
 find_library(
   PCAP_LIBRARY
   NAMES pcap
