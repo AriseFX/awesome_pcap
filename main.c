@@ -77,6 +77,10 @@ void g_print()
         }
         else
         {
+            /* source port */
+            cJSON_AddNumberToObject(_ipvnhdr, "source_port", ntohs(((struct udphdr *)(node->tcp_udp_hdr))->source));
+            /* destination port */
+            cJSON_AddNumberToObject(_ipvnhdr, "destination_port", ntohs(((struct udphdr *)(node->tcp_udp_hdr))->dest));
         }
         cJSON_AddItemToObject(cur, "ipvnhdr", _ipvnhdr);
 
