@@ -35,8 +35,12 @@ static int detection_protocol_types(struct prt_info *pi);
 void data_callback(u_char *user, const struct pcap_pkthdr *h,
                    const u_char *bytes)
 {
-    prt_info_t *pi = (prt_info_t *)user;
-
+    prt_info_t *pi = new_prt_info();
+    if (pi == NULL)
+    {
+        log_err("initial protocol info failed\n");
+        return;
+    }
     pi->pkt_count++;
     pi->pkthdr = (struct pcap_pkthdr *)h;
     // only handle effective packet
@@ -67,6 +71,10 @@ void data_callback(u_char *user, const struct pcap_pkthdr *h,
     }
     // try ipv4 first
     ipv4_packet_process(pi);
+    ptr_save(pi); // TODO store to global data to render in html
+    prt_info_out(pi);
+    prt_info_free(pi);
+    return;
 }
 
 static void ipv4_packet_process(struct prt_info *pi)

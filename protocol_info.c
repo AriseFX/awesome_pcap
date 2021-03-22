@@ -29,11 +29,44 @@ prt_info_t *new_prt_info(void)
 
     return pi;
 }
+void *ptr_save(prt_info_t *pi)
+{
+    if (pi->saved)
+    {
+        p_free(pi->pkthdr);
+        p_free(pi->ethhdr);
+        p_free(pi->ipvnhdr);
+        p_free(pi->tcp_udp_hdr);
+    }
+    struct pcap_pkthdr *_pkthdr = p_malloc(sizeof(struct pcap_pkthdr));
+    memcpy(_pkthdr, pi->pkthdr, sizeof(struct pcap_pkthdr));
+    pi->pkthdr = _pkthdr;
 
+    struct ethhdr *_ethhdr = p_malloc(sizeof(struct ethhdr));
+    memcpy(_ethhdr, pi->ethhdr, sizeof(struct ethhdr));
+    pi->ethhdr = _ethhdr;
+
+    void *_ipvnhdr = p_malloc(sizeof(*pi->ipvnhdr));
+    memcpy(_ipvnhdr, pi->ipvnhdr, sizeof(*pi->ipvnhdr));
+    pi->ipvnhdr = _ipvnhdr;
+
+    void *_tcp_udp_hdr = p_malloc(sizeof(*pi->tcp_udp_hdr));
+    memcpy(_tcp_udp_hdr, pi->tcp_udp_hdr, sizeof(*pi->tcp_udp_hdr));
+    pi->tcp_udp_hdr = _tcp_udp_hdr;
+    // finished
+    pi->saved = 1;
+    return pi;
+}
 /* 对协议信息的 释放 */
-
 void prt_info_free(prt_info_t *pi)
 {
+    if (pi->saved)
+    {
+        p_free(pi->pkthdr);
+        p_free(pi->ethhdr);
+        p_free(pi->ipvnhdr);
+        p_free(pi->tcp_udp_hdr);
+    }
     return p_free(pi);
 }
 

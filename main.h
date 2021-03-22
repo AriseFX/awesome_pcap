@@ -1,6 +1,8 @@
 #ifndef __MAIN_H__
 #define __MAIN_H__
-
+/* void warning macro */
+#define UNUSED(V) ((void)V)
+#define STDOUT_FD 2
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -32,6 +34,8 @@
 #include "callback.h"
 
 #include "protocol.h"
+
+#include "debug.h"
 
 #ifdef PRO_TYPES_SSH
 
