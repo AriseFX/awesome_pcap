@@ -1,4 +1,9 @@
 #include "main.h"
+
+struct g_prt_info_data _data = {
+    .head = NULL,
+    .tail = NULL,
+};
 /*
 * @argv[0] file to parse
 */
@@ -23,6 +28,7 @@ int main(int argc, char *argv[])
         goto clean;
     }
     pcap_loop(p, -1, data_callback, NULL);
+    prt_info_out();
     pcap_close(p);
 clean:
     fflush(stdout);

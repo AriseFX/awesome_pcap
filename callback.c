@@ -35,13 +35,13 @@ static int detection_protocol_types(struct prt_info *pi);
 void data_callback(u_char *user, const struct pcap_pkthdr *h,
                    const u_char *bytes)
 {
+    _data.pkt_count++;
     prt_info_t *pi = new_prt_info();
     if (pi == NULL)
     {
         log_err("initial protocol info failed\n");
         return;
     }
-    pi->pkt_count++;
     pi->pkthdr = (struct pcap_pkthdr *)h;
     // only handle effective packet
     if (h->caplen != h->len)
@@ -51,7 +51,6 @@ void data_callback(u_char *user, const struct pcap_pkthdr *h,
     log_info("source mac     \t\t" MAC_FMT "\n", MAC(_ethhdr->h_source));
     log_info("destination mac\t\t" MAC_FMT "\n", MAC(_ethhdr->h_dest));
     pi->ethhdr = _ethhdr;
-    pi->ip_count++;
     // Internet Protocol
     uint p = ntohs(_ethhdr->h_proto);
     if (p == ETH_P_IP)
@@ -72,8 +71,7 @@ void data_callback(u_char *user, const struct pcap_pkthdr *h,
     // try ipv4 first
     ipv4_packet_process(pi);
     ptr_save(pi); // TODO store to global data to render in html
-    prt_info_out(pi);
-    prt_info_free(pi);
+    // prt_info_free(pi);
     return;
 }
 
@@ -87,9 +85,6 @@ static void ipv4_packet_process(struct prt_info *pi)
     }
     if (ntohs(pi->ethhdr->h_proto) != ETH_P_IP) // check again
         return;
-
-    // ipv4
-    pi->ipv4_count++;
 
     /*
      * 对于IP分片， 只处理第一个分片，
@@ -113,7 +108,6 @@ static void ipv4_packet_process(struct prt_info *pi)
 // TODO
 static void ipv6_packet_process(struct prt_info *pi)
 {
-    pi->ipv6_count++;
     return;
 }
 
