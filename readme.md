@@ -15,7 +15,9 @@
         - [ ] mqtt
         - [ ] RESP (redis protocol)
         - [ ] mysql protocol
+        - [ ] dns
       - [x] udp
+        - [ ] dns
 - [ ] GUI support 
   - gtk
 - Resource limit
