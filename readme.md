@@ -10,12 +10,12 @@
   - protocol
     - [x] ipv4
     - [x] ipv6
-      - [ ] tcp
+      - [x] tcp
         - [ ] http
         - [ ] mqtt
         - [ ] RESP (redis protocol)
         - [ ] mysql protocol
-      - [ ] udp
+      - [x] udp
 - [ ] GUI support 
   - gtk
 - Resource limit
