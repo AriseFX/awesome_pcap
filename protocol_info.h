@@ -32,13 +32,8 @@ struct pro_detec_info
 };
 
 /*  定义一个结构体， 用于记录和输出结果相关的一些信息 */
-
 typedef struct prt_info
 {
-    u32_t pkt_count;  /*  用于统计文件中， 所有patcket的数量 */
-    u32_t ip_count;   /* IP 报文的数量， */
-    u32_t ipv4_count; /* IPV4报文的数量 */
-    u32_t ipv6_count; /* IPV6报文的数量 */
 
     /* .... 视需添加。。。 */
 
@@ -57,6 +52,7 @@ typedef struct prt_info
     u8_t istcp; // 1 tcp 0 udp
     void *tcp_udp_hdr;
     u8_t saved; // whether do ptr_save
+    struct prt_info *next;
 } prt_info_t;
 
 /*  初始化，协议信息函数 */
@@ -67,6 +63,6 @@ void prt_info_free(prt_info_t *);
 void *ptr_save(prt_info_t *);
 /*  协议信息输出 */
 
-extern int prt_info_out(const prt_info_t *);
+extern int prt_info_out();
 
 #endif /* __PROTOCOL_INFO__  */
