@@ -56,16 +56,17 @@ typedef struct prt_info
     void *ipvnhdr;
     u8_t istcp; // 1 tcp 0 udp
     void *tcp_udp_hdr;
+    u8_t saved; // whether do ptr_save
 } prt_info_t;
 
 /*  初始化，协议信息函数 */
 extern prt_info_t *new_prt_info(void);
 
 /* 释放协议信息 */
-void prt_info_free(prt_info_t *pi);
-
+void prt_info_free(prt_info_t *);
+void *ptr_save(prt_info_t *);
 /*  协议信息输出 */
 
-extern int prt_info_out(const prt_info_t *pi);
+extern int prt_info_out(const prt_info_t *);
 
 #endif /* __PROTOCOL_INFO__  */

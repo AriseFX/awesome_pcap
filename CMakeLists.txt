@@ -29,23 +29,27 @@ message(
   "${ColourReset}"
 )
 if ( mode STREQUAL "debug") 
-  SET(CMAKE_BUILD_TYPE "Debug") 
+  SET(CMAKE_BUILD_TYPE "Debug")  
   message(
     STATUS
     "${BoldBlue}"
     "enable debug mode"
     "${ColourReset}"
   )
+  add_compile_options(-rdynamic)
+  message(STATUS 
+  "${BoldBlue}"
+  "optional:-rdynamic"
+  "${ColourReset}"
+  ) 
 endif()
 
 set(CMAKE_C_STANDARD 99)
+
+aux_source_directory (. DIR_SRCS)
+
 add_executable(pcap_demo 
-main.c
-protocol.c 
-protocol_info.c 
-ssh.c 
-callback.c  
-pmalloc.c
+${DIR_SRCS}
 )
 
 if ((CMAKE_COMPILER_IS_GNUCC ) AND ( mode STREQUAL "release"))

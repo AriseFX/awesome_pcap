@@ -4,6 +4,7 @@
 */
 int main(int argc, char *argv[])
 {
+    sig_init();
     int ret = EXIT_SUCCESS;
     if (argc < 2)
     {
@@ -11,13 +12,6 @@ int main(int argc, char *argv[])
         return 1;
     }
     /*  log_init() */
-    prt_info_t *info = new_prt_info();
-    if (info == NULL)
-    {
-        log_err("initial protocol info  failed\n");
-        ret = EXIT_FAILURE;
-        goto exit;
-    }
     log_dbg("Open pcap %s\n", argv[1]);
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_t *p = pcap_open_offline(argv[1], errbuf);
@@ -28,11 +22,9 @@ int main(int argc, char *argv[])
         ret = EXIT_FAILURE;
         goto clean;
     }
-    pcap_loop(p, -1, data_callback, (u_char *)info);
-    prt_info_out(info);
+    pcap_loop(p, -1, data_callback, NULL);
     pcap_close(p);
 clean:
-    prt_info_free(info);
     fflush(stdout);
     fflush(stderr);
 exit:
