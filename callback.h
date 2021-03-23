@@ -6,22 +6,22 @@
  * 0-2 max-prefix
  */
 #define MAC_FMT "%x:%x:%x:%x:%x:%x"
-#define MAC(addr)                                       \
-  ((unsigned char *)&addr)[0],                          \
-      ((unsigned char *)&addr)[1],                      \
-      ((unsigned char *)&addr)[2],                      \
-      ((unsigned char *)&addr)[3], /* MAC prefix end */ \
-      ((unsigned char *)&addr)[4],                      \
-      ((unsigned char *)&addr)[5]
+#define MAC(addr)                                              \
+    ((unsigned char *) &addr)[0],                              \
+            ((unsigned char *) &addr)[1],                      \
+            ((unsigned char *) &addr)[2],                      \
+            ((unsigned char *) &addr)[3], /* MAC prefix end */ \
+            ((unsigned char *) &addr)[4],                      \
+            ((unsigned char *) &addr)[5]
 /*
  * Display an IP address in readable format.
  */
 #define NIPQUAD_FMT "%u.%u.%u.%u"
-#define NIPQUAD(addr)              \
-  ((unsigned char *)&addr)[0],     \
-      ((unsigned char *)&addr)[1], \
-      ((unsigned char *)&addr)[2], \
-      ((unsigned char *)&addr)[3]
+#define NIPQUAD(addr)                     \
+    ((unsigned char *) &addr)[0],         \
+            ((unsigned char *) &addr)[1], \
+            ((unsigned char *) &addr)[2], \
+            ((unsigned char *) &addr)[3]
 
 extern void data_callback(unsigned char *user, const struct pcap_pkthdr *h, const unsigned char *bytes);
 
