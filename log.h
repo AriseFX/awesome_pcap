@@ -18,12 +18,11 @@
 
 #if DPI_DEBUG
 
-#define log_dbg(...)                                                  \
-        do                                                            \
-        {                                                             \
-                log_info("%s:%d:%s\t", __FILE__, __LINE__, __func__); \
-                log_info(__VA_ARGS__);                                \
-        } while (0)
+#define log_dbg(...)                                          \
+    do {                                                      \
+        log_info("%s:%d:%s\t", __FILE__, __LINE__, __func__); \
+        log_info(__VA_ARGS__);                                \
+    } while (0)
 
 #else
 
