@@ -6,15 +6,14 @@
 #include "pmalloc.h"
 
 static char *pro_string[PRO_TYPES_MAX] = {
-    PRO_STRINGS};
+        PRO_STRINGS};
 
 /**
  * 对协议信息的初始化
  * @return 初始化失败，返回NULL
  *         成功，返回prt_info_t类型指针
  */
-prt_info_t *new_prt_info(void)
-{
+prt_info_t *new_prt_info(void) {
     prt_info_t *pi = p_calloc(1, sizeof(*pi));
 
     /* 初始化应用协议探测引擎 */
@@ -29,10 +28,8 @@ prt_info_t *new_prt_info(void)
 
     return pi;
 }
-void *ptr_save(prt_info_t *pi)
-{
-    if (pi->saved)
-    {
+void *ptr_save(prt_info_t *pi) {
+    if (pi->saved) {
         p_free(pi->pkthdr);
         p_free(pi->ethhdr);
         p_free(pi->ipvnhdr);
@@ -47,50 +44,41 @@ void *ptr_save(prt_info_t *pi)
     pi->ethhdr = _ethhdr;
     /* ipv4 ipv6 copy */
     void *_ipvnhdr;
-    u_int8_t p = ntohs(pi->ethhdr->h_proto);
-    if (p == ETH_P_IP)
-    {
-        _ipvnhdr = p_malloc(sizeof(struct iphdr));
-        memcpy(_ipvnhdr, pi->ipvnhdr, sizeof(struct iphdr));
-    }
-    else if (p == ETH_P_IPV6)
-    {
-        _ipvnhdr = p_malloc(sizeof(struct ipv6hdr));
-        memcpy(_ipvnhdr, pi->ipvnhdr, sizeof(struct ipv6hdr));
+    switch (ntohs(pi->ethhdr->h_proto)) {
+        case ETH_P_IP:
+            _ipvnhdr = p_malloc(sizeof(struct iphdr));
+            memcpy(_ipvnhdr, pi->ipvnhdr, sizeof(struct iphdr));
+            break;
+        case ETH_P_IPV6:
+            _ipvnhdr = p_malloc(sizeof(struct ipv6hdr));
+            memcpy(_ipvnhdr, pi->ipvnhdr, sizeof(struct ipv6hdr));
+            break;
     }
     pi->ipvnhdr = _ipvnhdr;
     /* _tcp_udp_hdr copy */
     void *_tcp_udp_hdr;
-    if (pi->istcp)
-    {
+    if (pi->istcp) {
         _tcp_udp_hdr = p_malloc(sizeof(struct tcphdr));
         memcpy(_tcp_udp_hdr, pi->tcp_udp_hdr, sizeof(struct tcphdr));
-    }
-    else
-    {
+    } else {
         _tcp_udp_hdr = p_malloc(sizeof(struct udphdr));
         memcpy(_tcp_udp_hdr, pi->tcp_udp_hdr, sizeof(struct udphdr));
     }
     pi->tcp_udp_hdr = _tcp_udp_hdr;
-    if (!pi->saved)
-    {
+    if (!pi->saved) {
         _data.ip_count++;
-        switch (ntohs(pi->ethhdr->h_proto))
-        {
-        case ETH_P_IPV6:
-            _data.ipv6_count++;
-        case ETH_P_IP:
-            _data.ipv4_count++;
-        default:
-            break;
+        switch (ntohs(pi->ethhdr->h_proto)) {
+            case ETH_P_IPV6:
+                _data.ipv6_count++;
+            case ETH_P_IP:
+                _data.ipv4_count++;
+            default:
+                break;
         }
         // store to _data
-        if (!_data.tail)
-        {
+        if (!_data.tail) {
             _data.head = _data.tail = pi;
-        }
-        else
-        {
+        } else {
             _data.tail->next = pi;
             _data.tail = pi;
         }
@@ -100,10 +88,8 @@ void *ptr_save(prt_info_t *pi)
     return pi;
 }
 /* 对协议信息的 释放 */
-void prt_info_free(prt_info_t *pi)
-{
-    if (pi->saved)
-    {
+void prt_info_free(prt_info_t *pi) {
+    if (pi->saved) {
         p_free(pi->pkthdr);
         p_free(pi->ethhdr);
         p_free(pi->ipvnhdr);
@@ -113,8 +99,7 @@ void prt_info_free(prt_info_t *pi)
 }
 
 /* 对协议信息 输出 */
-int prt_info_out()
-{
+int prt_info_out() {
     /*  统计报文数量 */
     log_info("\nPacket: \n\n");
     log_info("\t Packet count: %d\n ", _data.pkt_count);
