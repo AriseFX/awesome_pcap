@@ -42,7 +42,7 @@ void data_callback(unsigned char *user, const struct pcap_pkthdr *h,
     ipv4_packet_process(pi);
     ptr_save(pi);// TODO store to global data to render in html
     // prt_info_free(pi);
-    dict_add(_tcp_map, pi);
+    dict_add(_frame_map, pi);
     return;
 }
 
