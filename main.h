@@ -54,6 +54,6 @@ struct g_prt_info_data {
 
 struct g_prt_info_data _data;
 
-struct q_map *_tcp_map;
+struct q_map *_frame_map;
 
 #endif /* __MAIN_H__ */

@@ -104,7 +104,7 @@ int main(int argc, char *argv[]) {
     /* sig_handle func init */
     sig_init();
     /* tcp group map init */
-    _tcp_map = dictCreate(10);
+    _frame_map = dictCreate(10);
     int ret = EXIT_SUCCESS;
     if (argc < 2) {
         log_err("Please input : %s <pcap file name>\n", argv[0]);

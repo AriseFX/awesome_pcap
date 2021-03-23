@@ -1,9 +1,8 @@
 #ifndef __Q_MAP_H__
 #define __Q_MAP_H__
-#define MAP_HASH_DEFAULT_SIZE 10
-#define _MASK 0xffffffff
 #include "main.h"
 #include "protocol_info.h"
+#define MAP_HASH_DEFAULT_SIZE 10
 /*
 * cause this map is not used to store the temporary data
 * so no need to resize it
