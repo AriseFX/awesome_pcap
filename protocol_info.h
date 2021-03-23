@@ -25,15 +25,13 @@ typedef int (*detec_pro_t)(struct prt_info *pi);
 #define FLAG_TCP 0
 #define FLAG_UDP 1
 
-struct pro_detec_info
-{
+struct pro_detec_info {
     int flag;              /* 0, TCP,  1, UDP, ... */
     detec_pro_t pro_detec; /*  应用协议探测引擎 */
 };
-
+struct asd;
 /*  定义一个结构体， 用于记录和输出结果相关的一些信息 */
-typedef struct prt_info
-{
+typedef struct prt_info {
 
     /* .... 视需添加。。。 */
 
@@ -49,10 +47,12 @@ typedef struct prt_info
     struct ethhdr *ethhdr;
     // ethpacket header maybe ipv4 or ipv6
     void *ipvnhdr;
-    u8_t istcp; // 1 tcp 0 udp
+    u8_t istcp;// 1 tcp 0 udp
     void *tcp_udp_hdr;
-    u8_t saved; // whether do ptr_save
-    struct prt_info *next;
+    u8_t saved;               // whether do ptr_save
+    struct prt_info *next;    // capture order next ptr
+    struct prt_info *tcp_next;// tcp order next ptr, only has in tcp mode
+    struct prt_info *dup;     // duplicate list ptr
 } prt_info_t;
 
 /*  初始化，协议信息函数 */

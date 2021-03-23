@@ -1,7 +1,7 @@
-#include "main.h"
 #include "ssh.h"
+#include "main.h"
 
-#ifdef  PRO_TYPES_SSH
+#ifdef PRO_TYPES_SSH
 
 /* 完成， 对ssh协议的探测，
  * 如果是ssh协议，返回1，如果不是ssh， 返回0  */
@@ -33,4 +33,4 @@ int detec_ssh(struct prt_info *pi) {
 }
 
 
-#endif  /* PRO_TYPES_SSH */
+#endif /* PRO_TYPES_SSH */
