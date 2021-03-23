@@ -44,7 +44,6 @@ struct cJSON *g_print_node(struct prt_info *node) {
         default:
             break;
     }
-
     cJSON_AddItemToObject(cur, "ipvnhdr", _ipvnhdr);
     if (node->istcp) {
         /* source port */
