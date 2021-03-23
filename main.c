@@ -85,8 +85,8 @@ void g_print() {
             break;
         }
         cJSON *cur = g_print_node(node);
-        if (node->tcp_next) {
-            cJSON *cur_next = g_print_node(node->tcp_next);
+        if (node->next_frame) {
+            cJSON *cur_next = g_print_node(node->next_frame);
             cJSON_AddItemToObject(cur, "next", cur_next);
         }
         cJSON_AddItemToArray(g_arr, cur);
