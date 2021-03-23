@@ -15,7 +15,7 @@
 /*  协议标识， 顺序和定义支持对应协议保持一致, 添加新协议时， 添加该协议的标识，参考下述例子*/
 
 #define PRO_STRINGS \
-        "UNKNOWN",  \
+    "UNKNOWN",      \
             "SSH",  \
             "TFTP", \
             "NTP"
