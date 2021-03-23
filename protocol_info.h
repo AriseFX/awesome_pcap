@@ -49,10 +49,10 @@ typedef struct prt_info {
     void *ipvnhdr;
     u8_t istcp;// 1 tcp 0 udp
     void *tcp_udp_hdr;
-    u8_t saved;               // whether do ptr_save
-    struct prt_info *next;    // capture order next ptr
-    struct prt_info *tcp_next;// tcp order next ptr, only has in tcp mode
-    struct prt_info *dup;     // duplicate list ptr
+    u8_t saved;                 // whether do ptr_save
+    struct prt_info *next;      // capture order next ptr
+    struct prt_info *next_frame;// next frame -- group by four tuple info
+    struct prt_info *dup;       // duplicate list ptr
 } prt_info_t;
 
 /*  初始化，协议信息函数 */

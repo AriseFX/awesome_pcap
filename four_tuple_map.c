@@ -125,13 +125,13 @@ int dict_add(struct q_map *qm, struct prt_info *pi) {
     */
         struct prt_info *val = _entry->val;
         for (;;) {
-            if (val->tcp_next) {
-                val = val->tcp_next;
+            if (val->next_frame) {
+                val = val->next_frame;
             } else {
                 break;
             }
         }
-        val->tcp_next = pi;
+        val->next_frame = pi;
     }
     /* finished */
 }
