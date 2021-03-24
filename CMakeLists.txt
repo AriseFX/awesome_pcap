@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(pcap_demo C)
 # CMAKE_BINARY_DIR === ./build/pcap_demo/
 # WROKDIR ./deps
-set(WROKDIR ${CMAKE_BINARY_DIR}/../..)
+set(WROKDIR ${CMAKE_BINARY_DIR}/..)
 #  COLOR DEFINE
 if(NOT WIN32)
 string(ASCII 27 Esc)

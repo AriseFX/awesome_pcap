@@ -24,6 +24,10 @@ prt_info_t *new_prt_info(void) {
     pi->pro_detec[PRO_TYPES_SSH].pro_detec = detec_ssh;
 #endif /* PRO_TYPES_SSH */
 
+#ifdef PRO_TYPES_HTTP
+    pi->pro_detec[PRO_TYPES_HTTP].flag = FLAG_TCP;
+    pi->pro_detec[PRO_TYPES_HTTP].pro_detec = detec_http;
+#endif /* PRO_TYPES_SSH */
     /* ... 按需添加 */
 
     return pi;

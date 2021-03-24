@@ -2,7 +2,7 @@ include(ExternalProject)
 
 ExternalProject_Add(cJSON
     PREFIX ${WROKDIR}/deps/
-    GIT_REPOSITORY https://github.com/DaveGamble/cJSON.git
+    GIT_REPOSITORY https://gitee.com/Wyarise/cJSON.git
     GIT_TAG v1.7.14
     CMAKE_COMMAND cmake .. -DENABLE_CJSON_UTILS=On -DENABLE_CJSON_TEST=Off -DCMAKE_INSTALL_PREFIX=/usr
 )   

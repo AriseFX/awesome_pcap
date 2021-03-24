@@ -40,6 +40,7 @@
 #ifdef PRO_TYPES_SSH
 
 #include "ssh.h"
+#include "http.h"
 
 #endif /* PRO_TYPES_SSH */
 #include "four_tuple_map.h"

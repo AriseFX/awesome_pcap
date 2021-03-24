@@ -53,6 +53,7 @@ typedef struct prt_info {
     struct prt_info *next;      // capture order next ptr
     struct prt_info *next_frame;// next frame -- group by four tuple info
     struct prt_info *dup;       // duplicate list ptr
+    char resolve_status;        // current message resolve status,ex: http_status->http_header->http_body
 } prt_info_t;
 
 /*  初始化，协议信息函数 */
