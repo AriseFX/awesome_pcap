@@ -93,8 +93,8 @@ int dict_add(struct q_map *qm, struct prt_info *pi) {
         }
         if (_entry) {
             /*
-      * full check
-      */
+             * full check
+             */
             for (; _entry && (_entry->source != source ||
                               _entry->dest != dest ||
                               _entry->saddr != saddr ||
@@ -120,9 +120,9 @@ int dict_add(struct q_map *qm, struct prt_info *pi) {
         }
     } else {
         /* 
-    * if protocol is tcp
-    * we need to check seq & ack to find out if this frame is duplicated
-    */
+         * if protocol is tcp
+         * we need to check seq & ack to find out if this frame is duplicated
+         */
         struct prt_info *val = _entry->val;
         for (;;) {
             if (val->next_frame) {
