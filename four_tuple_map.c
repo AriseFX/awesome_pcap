@@ -44,6 +44,17 @@ void q_free(struct q_map *qm) {
             }
         }
     }
+    /* clear index */
+    for (;;) {
+        struct index *cur = qm->index;
+        if (!cur) {
+            break;
+        }
+        struct index *next = cur->next;
+        p_free(cur);
+        cur = next;
+    }
+    if (qm->index_tail) p_free(qm->index_tail);
     p_free(qm->bucket);
     p_free(qm);
 }
@@ -93,8 +104,8 @@ int dict_add(struct q_map *qm, struct prt_info *pi) {
         }
         if (_entry) {
             /*
-      * full check
-      */
+             * full check
+             */
             for (; _entry && (_entry->source != source ||
                               _entry->dest != dest ||
                               _entry->saddr != saddr ||
@@ -113,6 +124,16 @@ int dict_add(struct q_map *qm, struct prt_info *pi) {
         _entry->next = NULL;
         _entry->val = pi;
         _entry->key = base;
+        struct index *_index = p_malloc(sizeof(struct index));
+        _index->entry = _entry;
+        _index->next = NULL;
+        if (!qm->index) {
+            qm->index = _index;
+            qm->index_tail = _index;
+        } else {
+            qm->index_tail->next = _index;
+            qm->index_tail = _index;
+        }
         if (!_tail) {
             qm->bucket[index] = _entry;
         } else {
@@ -120,9 +141,9 @@ int dict_add(struct q_map *qm, struct prt_info *pi) {
         }
     } else {
         /* 
-    * if protocol is tcp
-    * we need to check seq & ack to find out if this frame is duplicated
-    */
+         * if protocol is tcp
+         * we need to check seq & ack to find out if this frame is duplicated
+         */
         struct prt_info *val = _entry->val;
         for (;;) {
             if (val->next_frame) {

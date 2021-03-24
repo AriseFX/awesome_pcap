@@ -52,17 +52,17 @@ struct cJSON *g_print_node(struct prt_info *node) {
         /* destination port */
         cJSON_AddNumberToObject(_ipvnhdr, "destination_port", ntohs(((struct tcphdr *) (node->tcp_udp_hdr))->dest));
         /* ack_seq seq syn ack fin rst */
-        // cJSON_AddNumberToObject(cur, "ack_seq", ntohl(((struct tcphdr *) (node->tcp_udp_hdr))->ack_seq));
-        // cJSON_AddNumberToObject(cur, "seq", ntohl(((struct tcphdr *) (node->tcp_udp_hdr))->seq));
-        // cJSON_AddNumberToObject(cur, "doff", ntohl(((struct tcphdr *) (node->tcp_udp_hdr))->doff));
-        // cJSON_AddBoolToObject(cur, "ack", ((struct tcphdr *) (node->tcp_udp_hdr))->ack);
-        // cJSON_AddBoolToObject(cur, "syn", ((struct tcphdr *) (node->tcp_udp_hdr))->syn);
-        // cJSON_AddBoolToObject(cur, "fin", ((struct tcphdr *) (node->tcp_udp_hdr))->fin);
-        // cJSON_AddBoolToObject(cur, "rst", ((struct tcphdr *) (node->tcp_udp_hdr))->rst);
-        // cJSON_AddBoolToObject(cur, "psh", ((struct tcphdr *) (node->tcp_udp_hdr))->psh);
-        // cJSON_AddBoolToObject(cur, "urg", ((struct tcphdr *) (node->tcp_udp_hdr))->urg);
-        // cJSON_AddBoolToObject(cur, "ece", ((struct tcphdr *) (node->tcp_udp_hdr))->ece);
-        // cJSON_AddBoolToObject(cur, "cwr", ((struct tcphdr *) (node->tcp_udp_hdr))->cwr);
+        cJSON_AddNumberToObject(cur, "ack_seq", ntohl(((struct tcphdr *) (node->tcp_udp_hdr))->ack_seq));
+        cJSON_AddNumberToObject(cur, "seq", ntohl(((struct tcphdr *) (node->tcp_udp_hdr))->seq));
+        cJSON_AddNumberToObject(cur, "doff", ntohl(((struct tcphdr *) (node->tcp_udp_hdr))->doff));
+        cJSON_AddBoolToObject(cur, "ack", ((struct tcphdr *) (node->tcp_udp_hdr))->ack);
+        cJSON_AddBoolToObject(cur, "syn", ((struct tcphdr *) (node->tcp_udp_hdr))->syn);
+        cJSON_AddBoolToObject(cur, "fin", ((struct tcphdr *) (node->tcp_udp_hdr))->fin);
+        cJSON_AddBoolToObject(cur, "rst", ((struct tcphdr *) (node->tcp_udp_hdr))->rst);
+        cJSON_AddBoolToObject(cur, "psh", ((struct tcphdr *) (node->tcp_udp_hdr))->psh);
+        cJSON_AddBoolToObject(cur, "urg", ((struct tcphdr *) (node->tcp_udp_hdr))->urg);
+        cJSON_AddBoolToObject(cur, "ece", ((struct tcphdr *) (node->tcp_udp_hdr))->ece);
+        cJSON_AddBoolToObject(cur, "cwr", ((struct tcphdr *) (node->tcp_udp_hdr))->cwr);
     } else {
         /* source port */
         cJSON_AddNumberToObject(_ipvnhdr, "source_port", ntohs(((struct udphdr *) (node->tcp_udp_hdr))->source));
