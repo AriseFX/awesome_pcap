@@ -20,7 +20,10 @@ struct entry {
     struct prt_info *val;
     long key;
 };
-
+struct index {
+    struct entry *entry;
+    struct index *next;
+};
 struct q_map {
     unsigned int _size;// bucket nums
     /*
@@ -29,6 +32,12 @@ struct q_map {
      * )
      */
     struct entry **bucket;
+    /*
+     * this store the index to the first captured frame
+     * with the same four tuple info by capture order
+     */
+    struct index *index;
+    struct index *index_tail;
 };
 /* API */
 struct q_map *dictCreate(unsigned int);
