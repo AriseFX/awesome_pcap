@@ -44,6 +44,4 @@ struct q_map *dictCreate(unsigned int);
 void q_free(struct q_map *);
 /* add to the dict, while dup frame, add to the target prt_info->dup tail */
 int dict_add(struct q_map *, struct prt_info *);
-/* search the first frame when exists dup frames */
-struct prt_info *dict_search(struct q_map *, struct prt_info *);
 #endif /* __Q_MAP_H__ */
