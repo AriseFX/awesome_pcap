@@ -3,7 +3,8 @@
 
 #ifdef PRO_TYPES_HTTP
 
-#define CRLF '\r\n'
+#define CR '\r'
+#define LF '\n'
 #define BLANK ' '
 
 int detec_http(struct prt_info *pi) {
@@ -17,7 +18,10 @@ int detec_http(struct prt_info *pi) {
         return 0;
     }
     unsigned char *p = (unsigned char *) _tcphdr + _tcphdr->doff * 4;
-    unsigned char *crlf_p = memchr(p, CRLF, 200);
+    unsigned char *crlf_p = memchr(p, CR, 200);
+    if (*(crlf_p + 1) != LF) {
+        return 0;
+    }
     if (crlf_p != NULL) {
         unsigned char **line = p_malloc(sizeof(void *) * 3);
         int16_t status_line_size = crlf_p - p - 1;
