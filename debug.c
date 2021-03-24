@@ -1,6 +1,4 @@
-
 #include "debug.h"
-#include "main.h"
 #include <execinfo.h>
 #include <signal.h>
 
@@ -16,8 +14,8 @@ void sigsegvHandler(int sig, siginfo_t *info, void *secret) {
         log_info("Killed by PID: %ld, UID: %d", (long) info->si_pid, info->si_uid);
     }
     /*
-  * stacktrace
-  */
+     * stacktrace
+     */
     void *trace[100];
     size_t trace_size = 0;
     trace_size = backtrace(trace, 100);
@@ -29,8 +27,8 @@ void sigsegvHandler(int sig, siginfo_t *info, void *secret) {
 }
 void sig_init() {
     /*
-  * crashlog part
-  */
+     * crashlog part
+     */
     struct sigaction act;
 
     act.sa_flags = 0;
