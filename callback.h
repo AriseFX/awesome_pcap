@@ -1,6 +1,7 @@
 #ifndef __CALLBACK_H__
 #define __CALLBACK_H__
-
+#include "main.h"
+#define DEFAULT_MEMORY_OOM_SIZE 1 << 20 // 1 MB
 /*
  * Display a mac address in readable format.
  * 0-2 max-prefix

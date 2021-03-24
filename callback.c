@@ -1,4 +1,5 @@
-#include "main.h"
+#include "callback.h"
+#include "pmalloc.h"
 
 static unsigned char *offsetptr(unsigned char *bytes, size_t offset) {
     return bytes + offset;
@@ -11,6 +12,12 @@ static int detection_protocol_types(struct prt_info *pi);
 
 void data_callback(unsigned char *user, const struct pcap_pkthdr *h,
                    const unsigned char *bytes) {
+    size_t mem = pmalloc_used_memory();
+    pcap_t *t = (pcap_t *) user;
+    if (mem >= DEFAULT_MEMORY_OOM_SIZE) {// OOM
+        log_err("pcap out of memory to continue doing job, please check out your config.\n");
+        pcap_breakloop(t);
+    }
     _data.pkt_count++;
     prt_info_t *pi = new_prt_info();
     if (pi == NULL) {

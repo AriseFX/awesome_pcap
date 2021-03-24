@@ -5,7 +5,7 @@
 #include <malloc.h>
 
 #define pmalloc_size(p) malloc_usable_size(p)
-
+size_t pmalloc_used_memory(void);
 void *p_malloc(size_t size);
 void *p_calloc(size_t nmemb, size_t size);
 void p_free(void *ptr);

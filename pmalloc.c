@@ -10,7 +10,11 @@ static void pmalloc_oom(size_t size) {
     fflush(stderr);
     abort();
 }
-
+size_t pmalloc_used_memory(void) {
+    size_t um;
+    atomicGet(used_memory, um);
+    return um;
+}
 void *p_malloc(size_t size) {
     void *ptr = malloc(size);
     if (!ptr)

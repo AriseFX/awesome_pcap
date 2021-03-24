@@ -44,7 +44,7 @@ struct cJSON *g_print_node(struct prt_info *node) {
         default:
             break;
     }
-    
+
     cJSON_AddItemToObject(cur, "ipvnhdr", _ipvnhdr);
     if (node->istcp) {
         /* source port */
@@ -120,7 +120,7 @@ int main(int argc, char *argv[]) {
         ret = EXIT_FAILURE;
         goto clean;
     }
-    pcap_loop(p, -1, data_callback, NULL);
+    pcap_loop(p, -1, data_callback, (unsigned char *) p);
     prt_info_out();
     pcap_close(p);
     g_print();

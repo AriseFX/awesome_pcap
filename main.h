@@ -28,7 +28,7 @@
 #include <pcap/pcap.h>
 
 #include "log.h"
-
+#include "atomicvar.h"
 #include "protocol_info.h"
 
 #include "callback.h"
