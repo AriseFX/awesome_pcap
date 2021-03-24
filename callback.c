@@ -111,14 +111,26 @@ static int detection_protocol_types(struct prt_info *pi) {
             log_info("ack \t\t\t%u\n", (_tcphdr->ack));
             log_info("fin \t\t\t%u\n", (_tcphdr->fin));
             log_info("rst \t\t\t%u\n", (_tcphdr->rst));
-            for (i = 0; i < PRO_TYPES_MAX; i++) {
-                if (pi->pro_detec[i].flag == FLAG_TCP) {
-                    if ((pi->pro_detec[i].pro_detec != NULL) && pi->pro_detec[i].pro_detec(pi) != 0) {
-                        ret = i; /*  i指代某种协议类型 */
-                        break;
-                    }
+            unsigned char *p = (unsigned char *) offsetptr((unsigned char *) _tcphdr, _tcphdr->doff * 4);
+            raxIterator iter;
+            raxStart(&iter, _rax);// Note that 'rt' is the radix tree pointer.
+            size_t p_len = strlen(p);
+            if (!p || !p_len) break;
+            raxSeek(&iter, ">=", p, 1);
+            while (raxNext(&iter)) {
+                if (iter.key_len <= p_len && raxCompare(&iter, "==", p, iter.key_len)) {
+                    ((detec_pro_t)(iter.data))(pi);
                 }
             }
+            raxStop(&iter);
+            // for (i = 0; i < PRO_TYPES_MAX; i++) {
+            //     if (pi->pro_detec[i].flag == FLAG_TCP) {
+            //         if ((pi->pro_detec[i].pro_detec != NULL) && pi->pro_detec[i].pro_detec(pi) != 0) {
+            //             ret = i; /*  i指代某种协议类型 */
+            //             break;
+            //         }
+            //     }
+            // }
             break;
         case IPPROTO_UDP: /*  UDP  */
             pi->istcp = 0;

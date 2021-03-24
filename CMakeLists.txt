@@ -40,6 +40,7 @@ message(
 # deps
 
 include(cmake/cJSON.cmake) # cJSON
+include(cmake/rax.cmake)   # rax
 
 if (build STREQUAL "true") 
   return()

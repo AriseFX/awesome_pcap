@@ -26,6 +26,7 @@
 #include <linux/udp.h>
 
 #include <pcap/pcap.h>
+#include "./deps/src/rax/rax.h"
 
 #include "log.h"
 #include "atomicvar.h"
@@ -56,5 +57,6 @@ struct g_prt_info_data {
 struct g_prt_info_data _data;
 
 struct q_map *_frame_map;
-
+/* protocol radix tree */
+rax *_rax;
 #endif /* __MAIN_H__ */
