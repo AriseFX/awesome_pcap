@@ -19,28 +19,25 @@ int detec_http(struct prt_info *pi) {
     }
     unsigned char *p = (unsigned char *) _tcphdr + _tcphdr->doff * 4;
     unsigned char *crlf_p = memchr(p, CR, 200);
-    if (*(crlf_p + 1) != LF) {
+    if (crlf_p == NULL || *(crlf_p + 1) != LF) {
         return 0;
     }
-    if (crlf_p != NULL) {
-        unsigned char **line = p_malloc(sizeof(void *) * 3);
-        int16_t status_line_size = crlf_p - p - 1;
-        for (int i = 0, offset = 0, j = 0; i <= status_line_size; i++) {
-            if (*(p + i) == BLANK || i == status_line_size) {
-                unsigned char *token = p_malloc(i);
-                memcpy(token, p + offset, i - offset);
-                //++i for skip ''
-                offset = ++i;
-                line[j++] = token;
-            }
+    unsigned char **line = p_malloc(sizeof(void *) * 3);
+    int16_t status_line_size = crlf_p - p - 1;
+    for (int i = 0, offset = 0, j = 0; i <= status_line_size; i++) {
+        if (*(p + i) == BLANK || i == status_line_size) {
+            unsigned char *token = p_malloc(i);
+            memcpy(token, p + offset, i - offset);
+            //++i for skip ''
+            offset = ++i;
+            line[j++] = token;
         }
-        struct http_request *request = p_malloc(sizeof(struct http_request));
-        request->method = line[0];
-        request->url = line[1];
-        request->version = line[2];
-        return 1;
     }
-    return 0;
+    struct http_request *request = p_malloc(sizeof(struct http_request));
+    request->method = line[0];
+    request->url = line[1];
+    request->version = line[2];
+    return 1;
 }
 
 #endif /* PRO_TYPES_HTTP */
