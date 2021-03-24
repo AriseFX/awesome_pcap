@@ -1,11 +1,10 @@
 /* 协议保存和比对 */
-#include "main.h"
 #include "protocol.h"
+#include "main.h"
 
 /* 完成对已识别应用协议的四元组保存 */
 
-struct four_tuples
-{
+struct four_tuples {
     u32_t sip;   /* 源IP */
     u32_t dip;   /* 目的IP */
     u16_t sport; /* 源端口 */
@@ -15,8 +14,7 @@ struct four_tuples
 static struct four_tuples four[PRO_TYPES_MAX] = {0};
 
 /* 保存四元组 */
-int pro_types_save(struct prt_info *pi, int types)
-{
+int pro_types_save(struct prt_info *pi, int types) {
     /* 记录源IP， 目的IP */
     // four[types].sip = pi->iphdr->saddr;
     // four[types].dip = pi->iphdr->daddr;
@@ -43,8 +41,7 @@ int pro_types_save(struct prt_info *pi, int types)
  *  如果为已知类型， 返回1，
  *  如果不匹配已知类型， 返回0；
  */
-int pro_types_cmp(struct prt_info *pi, int types)
-{
+int pro_types_cmp(struct prt_info *pi, int types) {
     /* tcp 协议的比对 */
 
     // if (pi->tcphdr != NULL) {

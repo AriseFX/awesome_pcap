@@ -3,11 +3,10 @@
 
 #define PRO_UNKNOWN 0
 #define PRO_TYPES_SSH 1
-#define PRO_TYPES_TFTP 2
-#define PRO_TYPES_NTP 3
+#define PRO_TYPES_HTTP 2
 
 /* 当前支持协议解析的最后协议， 当添加新协议的时候， 需要更改当前最后协议 */
-#define PRO_LAST PRO_TYPES_NTP
+#define PRO_LAST PRO_TYPES_HTTP
 
 /*  当前支持协议最大数量 */
 #define PRO_TYPES_MAX (PRO_LAST + 1)
@@ -15,10 +14,9 @@
 /*  协议标识， 顺序和定义支持对应协议保持一致, 添加新协议时， 添加该协议的标识，参考下述例子*/
 
 #define PRO_STRINGS \
-        "UNKNOWN",  \
+    "UNKNOWN",      \
             "SSH",  \
-            "TFTP", \
-            "NTP"
+            "HTTP"
 
 /* 完成对已识别应用协议的四元组保存 */
 

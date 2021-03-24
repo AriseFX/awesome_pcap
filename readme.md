@@ -1,5 +1,7 @@
+#### dependence
 - cmake VERSION 3.10 +
 - libpcap libpcap-devel  centos: yum install libpcap && yum install libpcap-devel
+- cJSON v1.7.14
 
 
 #### TODO LIST
@@ -8,12 +10,14 @@
   - protocol
     - [x] ipv4
     - [x] ipv6
-      - [ ] tcp
+      - [x] tcp
         - [ ] http
         - [ ] mqtt
         - [ ] RESP (redis protocol)
         - [ ] mysql protocol
-      - [ ] udp
+        - [ ] dns
+      - [x] udp
+        - [ ] dns
 - [ ] GUI support 
   - gtk
 - Resource limit
@@ -23,9 +27,13 @@
 
 #### build
 ```shell
+# install dependence
+make deps
 # debug
 make build
 # release
 # will enable 01 optimization
 make release
+# clean
+make clean
 ```
