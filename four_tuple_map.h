@@ -4,9 +4,9 @@
 #include "protocol_info.h"
 #define MAP_HASH_DEFAULT_SIZE 10
 /*
-* cause this map is not used to store the temporary data
-* so no need to resize it
-*/
+ * cause this map is not used to store the temporary data
+ * so no need to resize it
+ */
 struct entry {
     struct entry *next;
     unsigned int
@@ -24,8 +24,10 @@ struct entry {
 struct q_map {
     unsigned int _size;// bucket nums
     /*
-  * use _bitcount(saddr<<16^daddr<<16|source<<8|dest) % _size to caculate offset
-  */
+     * use _bitcount(
+     *    (saddr^daddr)<<8)|(source^dest)
+     * )
+     */
     struct entry **bucket;
 };
 /* API */
