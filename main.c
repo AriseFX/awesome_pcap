@@ -1,10 +1,32 @@
 #include "main.h"
 #include "./deps/src/cJSON/cJSON.h"
+#include "./deps/src/rax/rax.c"
 /* ordered frame packet data (all) */
 struct g_prt_info_data _data = {
         .head = NULL,
         .tail = NULL,
 };
+/*
+ * http protocol init
+ */
+static unsigned char *METHODS[] = {
+        "CONNECT",
+        "DELETE",
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "PATCH",
+        "POST",
+        "PUT",
+        "TRACE",
+};
+void init_pro_detec() {
+    _rax = raxNew();
+    int method_len = sizeof(METHODS) / sizeof(char *);
+    for (int i = 0; i < method_len; i++) {
+        raxInsert(_rax, METHODS[i], strlen(METHODS[i]), &detec_http, NULL);
+    }
+}
 struct cJSON *g_print_node(struct prt_info *node) {
     if (!node) {
         return 0;
@@ -103,6 +125,8 @@ void g_print() {
 int main(int argc, char *argv[]) {
     /* sig_handle func init */
     sig_init();
+    /* init frame protocol routers */
+    init_pro_detec();
     /* tcp group map init */
     _frame_map = dictCreate(10);
     int ret = EXIT_SUCCESS;
