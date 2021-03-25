@@ -33,7 +33,7 @@ void q_free(struct q_map *qm) {
     unsigned int i;
     for (i = 0; i < qm->_size; ++qm) {
         if (qm->bucket[i]) {
-            for (;;) {
+            for (/* void */; /* void */; /* void */) {
                 struct entry *cur = qm->bucket[i];
                 if (!cur) {
                     break;
@@ -45,7 +45,7 @@ void q_free(struct q_map *qm) {
         }
     }
     /* clear index */
-    for (;;) {
+    for (/* void */; /* void */; /* void */) {
         struct index *cur = qm->index;
         if (!cur) {
             break;
@@ -61,7 +61,7 @@ void q_free(struct q_map *qm) {
 
 int dict_add(struct q_map *qm, struct prt_info *pi) {
     if (!qm || !pi)
-        return -1;
+        return 0;
     long base = 0;
     unsigned int saddr = 0, daddr = 0;
     unsigned short source = 0, dest = 0;
@@ -139,20 +139,47 @@ int dict_add(struct q_map *qm, struct prt_info *pi) {
         } else {
             _tail->next = _entry;
         }
-    } else {
-        /* 
-         * if protocol is tcp
-         * we need to check seq & ack to find out if this frame is duplicated
-         */
-        struct prt_info *val = _entry->val;
-        for (;;) {
-            if (val->next_frame) {
-                val = val->next_frame;
-            } else {
+        return 1;
+    }
+    /* 
+     * if protocol is tcp
+     * we need to check seq & ack to find out if this frame is duplicated
+     */
+    struct prt_info *val = _entry->val;
+    for (/* void */; /* void */; /* void */) {
+        /* seq dup handle */
+        if (pi->istcp && val->istcp) {
+            struct tcphdr *_tcphdr = (struct tcphdr *) (pi->tcp_udp_hdr);
+            struct tcphdr *_val_tcphdr = (struct tcphdr *) (val->tcp_udp_hdr);
+            struct iphdr *_iphdr = (struct iphdr *) (pi->ipvnhdr);
+            struct iphdr *_val_iphdr = (struct iphdr *) (val->ipvnhdr);
+            if (_tcphdr->dest == _val_tcphdr->dest &&
+                _tcphdr->source == _val_tcphdr->source &&
+                _iphdr->saddr == _val_iphdr->saddr &&
+                _iphdr->daddr == _val_iphdr->daddr &&
+                // seq equal ?
+                _tcphdr->seq == _val_tcphdr->seq) {
+                // dup frame
+                for (/* void */; /* void */; /* void */) {
+                    if (val->dup) {
+                        val = val->dup;
+                    } else {
+                        /* get the tail then insert */
+                        val->dup = pi;
+                        break;
+                    }
+                }
+                /* break handle the next frame */
                 break;
             }
+        } /* else {} */// TODO udp
+        if (val->next_frame) {
+            val = val->next_frame;
+        } else {
+            val->next_frame = pi;
+            break;
         }
-        val->next_frame = pi;
     }
+    return 1;
     /* finished */
 }

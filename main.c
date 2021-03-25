@@ -24,7 +24,7 @@ void init_pro_detec() {
     _rax = raxNew();
     int method_len = sizeof(METHODS) / sizeof(char *);
     for (int i = 0; i < method_len; i++) {
-        raxInsert(_rax, METHODS[i], strlen(METHODS[i]), &detec_http, NULL);
+        raxInsert(_rax, METHODS[i], strlen(METHODS[i]), detec_http, NULL);
     }
 }
 struct cJSON *g_print_node(struct prt_info *node) {
@@ -32,6 +32,7 @@ struct cJSON *g_print_node(struct prt_info *node) {
         return 0;
     }
     cJSON *cur = cJSON_CreateObject();
+    cJSON_AddNumberToObject(cur, "id", node->id);
 
     /* is tcp */
     cJSON_AddBoolToObject(cur, "istcp", node->istcp);
@@ -91,6 +92,11 @@ struct cJSON *g_print_node(struct prt_info *node) {
         /* destination port */
         cJSON_AddNumberToObject(_ipvnhdr, "destination_port", ntohs(((struct udphdr *) (node->tcp_udp_hdr))->dest));
     }
+    /* print user-lever data */
+    if (node->protocol) {
+        cJSON_AddStringToObject(cur, "protocol", node->protocol);
+        cJSON_AddStringToObject(cur, "print_message", node->print_message);
+    }
     return cur;
 }
 void g_print() {
@@ -110,6 +116,20 @@ void g_print() {
         if (node->next_frame) {
             cJSON *cur_next = g_print_node(node->next_frame);
             cJSON_AddItemToObject(cur, "next", cur_next);
+        }
+        if (node->dup) {
+            cJSON *dup_array = cJSON_CreateArray();
+            struct prt_info *loop = node->dup;
+            for (/* void */; /* void */; /* void */) {
+                cJSON *dup_node = g_print_node(loop);
+                cJSON_AddItemToArray(dup_array, dup_node);
+                if (loop->dup) {
+                    loop = loop->dup;
+                } else {
+                    break;
+                }
+            }
+            cJSON_AddItemToObject(cur, "dup", dup_array);
         }
         cJSON_AddItemToArray(g_arr, cur);
         node = node->next;

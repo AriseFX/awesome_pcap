@@ -32,6 +32,7 @@ struct pro_detec_info {
 struct asd;
 /*  定义一个结构体， 用于记录和输出结果相关的一些信息 */
 typedef struct prt_info {
+    uint id;
 
     /* .... 视需添加。。。 */
 
@@ -53,7 +54,8 @@ typedef struct prt_info {
     struct prt_info *next;      // capture order next ptr
     struct prt_info *next_frame;// next frame -- group by four tuple info
     struct prt_info *dup;       // duplicate list ptr
-    char resolve_status;        // current message resolve status,ex: http_status->http_header->http_body
+    char *protocol;             // protocol name (Front end display)
+    char *print_message;        // custom information (Front end display)
 } prt_info_t;
 
 /*  初始化，协议信息函数 */
