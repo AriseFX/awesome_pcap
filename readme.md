@@ -2,7 +2,7 @@
 - cmake VERSION 3.10 +
 - libpcap libpcap-devel  centos: yum install libpcap && yum install libpcap-devel
 - cJSON v1.7.14
-
+- rax https://github.com/antirez/rax
 
 #### TODO LIST
 - [ ] tcpdump pcap file parse support
@@ -23,7 +23,7 @@
 - Resource limit
   - [ ] cpu limit
   - [ ] rate limit
-  - [ ] memory limit
+  - [x] memory limit
 
 #### build
 ```shell
