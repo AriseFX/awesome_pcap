@@ -4,7 +4,6 @@
  */
 #include "main.h"
 #include "pmalloc.h"
-
 static char *pro_string[PRO_TYPES_MAX] = {
         PRO_STRINGS};
 
@@ -32,6 +31,10 @@ prt_info_t *new_prt_info(void) {
 
     return pi;
 }
+/*
+ * copy all the data that libpcap hold
+ * do not copy the user-level data such as pi->protocol pi->print_message
+ */
 void *ptr_save(prt_info_t *pi) {
     if (pi->saved) {
         p_free(pi->pkthdr);
@@ -98,6 +101,12 @@ void prt_info_free(prt_info_t *pi) {
         p_free(pi->ethhdr);
         p_free(pi->ipvnhdr);
         p_free(pi->tcp_udp_hdr);
+    }
+    if (pi->protocol) {
+        p_free(pi->protocol);
+    }
+    if (pi->print_message) {
+        p_free(pi->print_message);
     }
     return p_free(pi);
 }

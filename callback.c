@@ -1,17 +1,19 @@
 #include "callback.h"
 #include "pmalloc.h"
 
+static uint id_global = 0;
 static unsigned char *offsetptr(unsigned char *bytes, size_t offset) {
     return bytes + offset;
 }
-static void ipv4_packet_process(struct prt_info *pi);
+static int ipv4_packet_process(struct prt_info *pi);
 
-static void ipv6_packet_process(struct prt_info *pi);
+static int ipv6_packet_process(struct prt_info *pi);
 
 static int detection_protocol_types(struct prt_info *pi);
 
 void data_callback(unsigned char *user, const struct pcap_pkthdr *h,
                    const unsigned char *bytes) {
+    id_global++;
     size_t mem = pmalloc_used_memory();
     pcap_t *t = (pcap_t *) user;
     if (mem >= DEFAULT_MEMORY_OOM_SIZE) {// OOM
@@ -20,6 +22,7 @@ void data_callback(unsigned char *user, const struct pcap_pkthdr *h,
     }
     _data.pkt_count++;
     prt_info_t *pi = new_prt_info();
+    pi->id = id_global;
     if (pi == NULL) {
         log_err("initial protocol info failed\n");
         return;
@@ -46,21 +49,23 @@ void data_callback(unsigned char *user, const struct pcap_pkthdr *h,
         return;
     }
     // try ipv4 first
-    ipv4_packet_process(pi);
+    int protocol = ipv4_packet_process(pi);
+    if (protocol == PRO_UNKNOWN) {
+        return;
+    }
     ptr_save(pi);// TODO store to global data to render in html
     // prt_info_free(pi);
     dict_add(_frame_map, pi);
     return;
 }
 
-static void ipv4_packet_process(struct prt_info *pi) {
+static int ipv4_packet_process(struct prt_info *pi) {
     // if match ipv6, then turn to ipv6_packet_process.
     if (ntohs(pi->ethhdr->h_proto) == ETH_P_IPV6) {
-        ipv6_packet_process(pi);
-        return;
+        return ipv6_packet_process(pi);
     }
     if (ntohs(pi->ethhdr->h_proto) != ETH_P_IP)// check again
-        return;
+        return PRO_UNKNOWN;
 
     /*
      * 对于IP分片， 只处理第一个分片，
@@ -69,7 +74,7 @@ static void ipv4_packet_process(struct prt_info *pi) {
      */
     struct iphdr *_iphdr = (struct iphdr *) (pi->ipvnhdr);
     if ((ntohs(_iphdr->frag_off) & 0x1FFF) != 0)
-        return;
+        return PRO_UNKNOWN;
 
     log_info("source ip     \t\t" NIPQUAD_FMT "\n", NIPQUAD(_iphdr->saddr));
     log_info("destination ip\t\t" NIPQUAD_FMT "\n", NIPQUAD(_iphdr->daddr));
@@ -79,11 +84,11 @@ static void ipv4_packet_process(struct prt_info *pi) {
 
     pi->app_pro_count[a]++;
 
-    return;
+    return a;
 }
 // TODO
-static void ipv6_packet_process(struct prt_info *pi) {
-    return;
+static int ipv6_packet_process(struct prt_info *pi) {
+    return PRO_UNKNOWN;
 }
 
 /**
@@ -119,6 +124,7 @@ static int detection_protocol_types(struct prt_info *pi) {
             raxSeek(&iter, ">=", p, 1);
             while (raxNext(&iter)) {
                 if (iter.key_len <= p_len && raxCompare(&iter, "==", p, iter.key_len)) {
+                    ret = PRO_TYPES_HTTP;
                     ((detec_pro_t)(iter.data))(pi);
                 }
             }
