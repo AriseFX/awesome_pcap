@@ -23,7 +23,7 @@
 - Resource limit
   - [ ] cpu limit
   - [ ] rate limit
-  - [ ] memory limit
+  - [x] memory limit
 
 #### build
 ```shell
