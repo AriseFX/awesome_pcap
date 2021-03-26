@@ -18,6 +18,7 @@ struct entry {
             source,
             dest;
     struct prt_info *val;
+    uint dup_count;
     long key;
 };
 struct index {

@@ -68,6 +68,7 @@ struct cJSON *g_print_node(struct prt_info *node) {
             break;
     }
 
+    cJSON_AddNumberToObject(cur, "len", node->len);
     cJSON_AddItemToObject(cur, "ipvnhdr", _ipvnhdr);
     if (node->istcp) {
         /* source port */
@@ -96,6 +97,20 @@ struct cJSON *g_print_node(struct prt_info *node) {
     if (node->protocol) {
         cJSON_AddStringToObject(cur, "protocol", node->protocol);
         cJSON_AddStringToObject(cur, "print_message", node->print_message);
+    }
+    if (node->dup) {
+        cJSON *dup_array = cJSON_CreateArray();
+        struct prt_info *loop = node->dup;
+        for (/* void */; /* void */; /* void */) {
+            cJSON *dup_node = g_print_node(loop);
+            cJSON_AddItemToArray(dup_array, dup_node);
+            if (loop->dup) {
+                loop = loop->dup;
+            } else {
+                break;
+            }
+        }
+        cJSON_AddItemToObject(cur, "dup", dup_array);
     }
     return cur;
 }
@@ -139,6 +154,34 @@ void g_print() {
     // log_info("%s\n", cJSON_Print(g));
     cJSON_Delete(g);
 }
+void g_map_print() {
+    cJSON *g;
+    g = cJSON_CreateObject();
+    cJSON_AddNumberToObject(g, "pkt_count", _data.pkt_count);
+    cJSON_AddNumberToObject(g, "ip_count", _data.ip_count);
+    cJSON_AddNumberToObject(g, "ipv4_count", _data.ipv4_count);
+    cJSON_AddNumberToObject(g, "ipv6_count", _data.ipv6_count);
+    cJSON *g_arr = cJSON_AddArrayToObject(g, "data");
+    struct index *_index = _frame_map->index;
+    for (/* void */; /* void */; /* void */) {
+        if (!_index) {
+            break;
+        }
+        struct prt_info *node = _index->entry->val;
+        cJSON *cur = g_print_node(node);
+        cJSON_AddNumberToObject(cur, "dup_count", _index->entry->dup_count);
+        if (node->next_frame) {
+            cJSON *cur_next = g_print_node(node->next_frame);
+            cJSON_AddItemToObject(cur, "next", cur_next);
+        }
+        cJSON_AddItemToArray(g_arr, cur);
+        _index = _index->next;
+    }
+    log_info("\n\n");
+    log_info("%s\n", cJSON_PrintUnformatted(g));
+    // log_info("%s\n", cJSON_Print(g));
+    cJSON_Delete(g);
+}
 /*
 * @argv[0] file to parse
 */
@@ -167,7 +210,7 @@ int main(int argc, char *argv[]) {
     pcap_loop(p, -1, data_callback, (unsigned char *) p);
     prt_info_out();
     pcap_close(p);
-    g_print();
+    g_map_print();
 clean:
     fflush(stdout);
     fflush(stderr);
