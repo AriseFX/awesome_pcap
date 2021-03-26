@@ -33,6 +33,7 @@ void data_callback(unsigned char *user, const struct pcap_pkthdr *h,
         return;
     // Ethernet packet
     struct ethhdr *_ethhdr = (struct ethhdr *) bytes;
+    log_info("%x\n", _ethhdr);
     log_info("source mac     \t\t" MAC_FMT "\n", MAC(_ethhdr->h_source));
     log_info("destination mac\t\t" MAC_FMT "\n", MAC(_ethhdr->h_dest));
     pi->ethhdr = _ethhdr;
@@ -55,6 +56,9 @@ void data_callback(unsigned char *user, const struct pcap_pkthdr *h,
     }
     ptr_save(pi);// TODO store to global data to render in html
     // prt_info_free(pi);
+    if (!pi->protocol) { /* if not set, basic tcp or udp protocol should be set */
+        pi->protocol = pi->istcp ? "TCP" : "UDP";
+    }
     dict_add(_frame_map, pi);
     return;
 }
@@ -105,6 +109,7 @@ static int detection_protocol_types(struct prt_info *pi) {
     /* protocol assert */
     switch (_iphdr->protocol) {
         case IPPROTO_TCP: /*  TCP  */
+            ret = IPPROTO_TCP;
             pi->istcp = 1;
             pi->tcp_udp_hdr = (struct tcphdr *) offsetptr((unsigned char *) _iphdr, (_iphdr->ihl * 4));
             struct tcphdr *_tcphdr = (struct tcphdr *) (pi->tcp_udp_hdr);
@@ -117,6 +122,7 @@ static int detection_protocol_types(struct prt_info *pi) {
             log_info("fin \t\t\t%u\n", (_tcphdr->fin));
             log_info("rst \t\t\t%u\n", (_tcphdr->rst));
             unsigned char *p = (unsigned char *) offsetptr((unsigned char *) _tcphdr, _tcphdr->doff * 4);
+            pi->len = ntohs(_iphdr->tot_len) - _iphdr->ihl * 4 - _tcphdr->doff * 4;
             raxIterator iter;
             raxStart(&iter, _rax);// Note that 'rt' is the radix tree pointer.
             size_t p_len = strlen(p);
@@ -139,6 +145,7 @@ static int detection_protocol_types(struct prt_info *pi) {
             // }
             break;
         case IPPROTO_UDP: /*  UDP  */
+            ret = IPPROTO_UDP;
             pi->istcp = 0;
             pi->tcp_udp_hdr = (struct udphdr *) offsetptr((unsigned char *) _iphdr, (_iphdr->ihl * 4));
             struct udphdr *_udphdr = (struct udphdr *) (pi->tcp_udp_hdr);

@@ -124,6 +124,7 @@ int dict_add(struct q_map *qm, struct prt_info *pi) {
         _entry->next = NULL;
         _entry->val = pi;
         _entry->key = base;
+        _entry->dup_count = 0;
         struct index *_index = p_malloc(sizeof(struct index));
         _index->entry = _entry;
         _index->next = NULL;
@@ -153,24 +154,35 @@ int dict_add(struct q_map *qm, struct prt_info *pi) {
             struct tcphdr *_val_tcphdr = (struct tcphdr *) (val->tcp_udp_hdr);
             struct iphdr *_iphdr = (struct iphdr *) (pi->ipvnhdr);
             struct iphdr *_val_iphdr = (struct iphdr *) (val->ipvnhdr);
-            if (_tcphdr->dest == _val_tcphdr->dest &&
-                _tcphdr->source == _val_tcphdr->source &&
-                _iphdr->saddr == _val_iphdr->saddr &&
-                _iphdr->daddr == _val_iphdr->daddr &&
-                // seq equal ?
-                _tcphdr->seq == _val_tcphdr->seq) {
-                // dup frame
-                for (/* void */; /* void */; /* void */) {
-                    if (val->dup) {
-                        val = val->dup;
-                    } else {
-                        /* get the tail then insert */
-                        val->dup = pi;
-                        break;
+            size_t pi_len = ntohs(_iphdr->tot_len) - _iphdr->ihl * 4 - _tcphdr->doff * 4;
+            size_t val_len = ntohs(_val_iphdr->tot_len) - _val_iphdr->ihl * 4 - _val_tcphdr->doff * 4;
+            if (// four tuple info check
+                    _tcphdr->dest == _val_tcphdr->dest &&
+                    _tcphdr->source == _val_tcphdr->source &&
+                    _iphdr->saddr == _val_iphdr->saddr &&
+                    _iphdr->daddr == _val_iphdr->daddr &&
+                    // seq equal ?
+                    _tcphdr->seq == _val_tcphdr->seq &&
+                    // ack_seq check
+                    _tcphdr->ack_seq == _val_tcphdr->ack_seq &&
+                    // tcp segment len check
+                    pi_len == val_len) {
+                // https://github.com/wireshark/wireshark/blob/2484ad2f72d4c42720d3368329acaca9045ee096/epan/dissectors/packet-tcp.c#L2215-L2226
+                if (pi_len > 0 || ((_val_tcphdr->syn & _tcphdr->syn) || (_val_tcphdr->fin & _tcphdr->fin))) {
+                    // dup frame
+                    for (/* void */; /* void */; /* void */) {
+                        if (val->dup) {
+                            val = val->dup;
+                        } else {
+                            /* get the tail then insert */
+                            val->dup = pi;
+                            _entry->dup_count++;
+                            break;
+                        }
                     }
+                    /* break handle the next frame */
+                    break;
                 }
-                /* break handle the next frame */
-                break;
             }
         } /* else {} */// TODO udp
         if (val->next_frame) {

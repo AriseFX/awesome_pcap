@@ -29,11 +29,10 @@ struct pro_detec_info {
     int flag;              /* 0, TCP,  1, UDP, ... */
     detec_pro_t pro_detec; /*  应用协议探测引擎 */
 };
-struct asd;
 /*  定义一个结构体， 用于记录和输出结果相关的一些信息 */
 typedef struct prt_info {
     uint id;
-
+    size_t len;
     /* .... 视需添加。。。 */
 
     /* 用来统计应用协议个数, 该值为零， 协议没有 */

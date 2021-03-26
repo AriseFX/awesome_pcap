@@ -18,7 +18,7 @@ int detec_http(struct prt_info *pi) {
         return 0;
     }
     unsigned char *p = (unsigned char *) _tcphdr + _tcphdr->doff * 4;
-    pi->protocol = "http";
+    pi->protocol = "HTTP";
     size_t sz = strlen(p) * sizeof(char);
     char *message = p_malloc(sz);
     memcpy(message, p, sz);
