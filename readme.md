@@ -37,3 +37,8 @@ make release
 # clean
 make clean
 ```
+#### run
+```shell
+# ./build/pcap_demo/pcap_demo <pcap file name> <pcap template file> <result output file>
+./build/pcap_demo/pcap_demo  ./test.pcap ./template/tcp-v1.html ./result.html
+```
