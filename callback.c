@@ -2,7 +2,7 @@
 #include "pmalloc.h"
 
 static uint id_global = 0;
-static unsigned char *offsetptr(unsigned char *bytes, size_t offset) {
+unsigned char *offsetptr(unsigned char *bytes, size_t offset) {
     return bytes + offset;
 }
 static int ipv4_packet_process(struct prt_info *pi);
@@ -33,9 +33,9 @@ void data_callback(unsigned char *user, const struct pcap_pkthdr *h,
         return;
     // Ethernet packet
     struct ethhdr *_ethhdr = (struct ethhdr *) bytes;
-    log_info("%x\n", _ethhdr);
-    log_info("source mac     \t\t" MAC_FMT "\n", MAC(_ethhdr->h_source));
-    log_info("destination mac\t\t" MAC_FMT "\n", MAC(_ethhdr->h_dest));
+    log_dbg("%x\n", _ethhdr);
+    log_dbg("source mac     \t\t" MAC_FMT "\n", MAC(_ethhdr->h_source));
+    log_dbg("destination mac\t\t" MAC_FMT "\n", MAC(_ethhdr->h_dest));
     pi->ethhdr = _ethhdr;
     // Internet Protocol
     unsigned int p = ntohs(_ethhdr->h_proto);
@@ -80,9 +80,9 @@ static int ipv4_packet_process(struct prt_info *pi) {
     if ((ntohs(_iphdr->frag_off) & 0x1FFF) != 0)
         return PRO_UNKNOWN;
 
-    log_info("source ip     \t\t" NIPQUAD_FMT "\n", NIPQUAD(_iphdr->saddr));
-    log_info("destination ip\t\t" NIPQUAD_FMT "\n", NIPQUAD(_iphdr->daddr));
-    log_info("iphdr checksum16\t0x%x\n", ntohs(_iphdr->check));
+    log_dbg("source ip     \t\t" NIPQUAD_FMT "\n", NIPQUAD(_iphdr->saddr));
+    log_dbg("destination ip\t\t" NIPQUAD_FMT "\n", NIPQUAD(_iphdr->daddr));
+    log_dbg("iphdr checksum16\t0x%x\n", ntohs(_iphdr->check));
     /* Transmission Control Protocol detection */
     int a = detection_protocol_types(pi);
 
@@ -113,28 +113,16 @@ static int detection_protocol_types(struct prt_info *pi) {
             pi->istcp = 1;
             pi->tcp_udp_hdr = (struct tcphdr *) offsetptr((unsigned char *) _iphdr, (_iphdr->ihl * 4));
             struct tcphdr *_tcphdr = (struct tcphdr *) (pi->tcp_udp_hdr);
-            log_info("source port     \t%d\n", ntohs(_tcphdr->source));
-            log_info("destination port\t%u\n", ntohs(_tcphdr->dest));
-            log_info("ack_seq \t\t\t%u\n", ntohl(_tcphdr->ack_seq));
-            log_info("seq \t\t\t%u\n", ntohl(_tcphdr->seq));
-            log_info("syn \t\t\t%u\n", (_tcphdr->syn));
-            log_info("ack \t\t\t%u\n", (_tcphdr->ack));
-            log_info("fin \t\t\t%u\n", (_tcphdr->fin));
-            log_info("rst \t\t\t%u\n", (_tcphdr->rst));
-            unsigned char *p = (unsigned char *) offsetptr((unsigned char *) _tcphdr, _tcphdr->doff * 4);
+            log_dbg("source port     \t%d\n", ntohs(_tcphdr->source));
+            log_dbg("destination port\t%u\n", ntohs(_tcphdr->dest));
+            log_dbg("ack_seq \t\t\t%u\n", ntohl(_tcphdr->ack_seq));
+            log_dbg("seq \t\t\t%u\n", ntohl(_tcphdr->seq));
+            log_dbg("syn \t\t\t%u\n", (_tcphdr->syn));
+            log_dbg("ack \t\t\t%u\n", (_tcphdr->ack));
+            log_dbg("fin \t\t\t%u\n", (_tcphdr->fin));
+            log_dbg("rst \t\t\t%u\n", (_tcphdr->rst));
             pi->len = ntohs(_iphdr->tot_len) - _iphdr->ihl * 4 - _tcphdr->doff * 4;
-            raxIterator iter;
-            raxStart(&iter, _rax);// Note that 'rt' is the radix tree pointer.
-            size_t p_len = strlen(p);
-            if (!p || !p_len) break;
-            raxSeek(&iter, ">=", p, 1);
-            while (raxNext(&iter)) {
-                if (iter.key_len <= p_len && raxCompare(&iter, "==", p, iter.key_len)) {
-                    ret = PRO_TYPES_HTTP;
-                    ((detec_pro_t)(iter.data))(pi);
-                }
-            }
-            raxStop(&iter);
+            pi->data = offsetptr((unsigned char *) _tcphdr, _tcphdr->doff * 4);
             // for (i = 0; i < PRO_TYPES_MAX; i++) {
             //     if (pi->pro_detec[i].flag == FLAG_TCP) {
             //         if ((pi->pro_detec[i].pro_detec != NULL) && pi->pro_detec[i].pro_detec(pi) != 0) {

@@ -1,7 +1,7 @@
 #ifndef __CALLBACK_H__
 #define __CALLBACK_H__
 #include "main.h"
-#define DEFAULT_MEMORY_OOM_SIZE 1 << 20 // 1 MB
+#define DEFAULT_MEMORY_OOM_SIZE 1 << 20// 1 MB
 /*
  * Display a mac address in readable format.
  * 0-2 max-prefix
@@ -25,5 +25,5 @@
             ((unsigned char *) &addr)[3]
 
 extern void data_callback(unsigned char *user, const struct pcap_pkthdr *h, const unsigned char *bytes);
-
+unsigned char *offsetptr(unsigned char *bytes, size_t offset);
 #endif /* __CALLBACK_H__ */

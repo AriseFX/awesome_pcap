@@ -9,13 +9,13 @@
 
 int detec_http(struct prt_info *pi) {
     if (pi->tcp_udp_hdr == NULL)
-        return 0;
+        return PRO_UNKNOWN;
     struct tcphdr *_tcphdr = (struct tcphdr *) pi->tcp_udp_hdr;
 
     struct iphdr *_iphdr = (struct iphdr *) pi->ipvnhdr;
     //TODO 抽出各协议详细的校验
     if ((ntohs(_iphdr->tot_len) - _iphdr->ihl * 4 - _tcphdr->doff * 4) < 5) {
-        return 0;
+        return PRO_TYPES_HTTP;
     }
     unsigned char *p = (unsigned char *) _tcphdr + _tcphdr->doff * 4;
     pi->protocol = "HTTP";
@@ -25,7 +25,7 @@ int detec_http(struct prt_info *pi) {
     pi->print_message = message;
     unsigned char *crlf_p = memchr(p, CR, 200);
     if (crlf_p == NULL || *(crlf_p + 1) != LF) {
-        return 0;
+        return PRO_TYPES_HTTP;
     }
     unsigned char **line = p_malloc(sizeof(void *) * 3);
     int16_t status_line_size = crlf_p - p - 1;
@@ -42,7 +42,7 @@ int detec_http(struct prt_info *pi) {
     request->method = line[0];
     request->url = line[1];
     request->version = line[2];
-    return 1;
+    return PRO_TYPES_HTTP;
 }
 
 #endif /* PRO_TYPES_HTTP */

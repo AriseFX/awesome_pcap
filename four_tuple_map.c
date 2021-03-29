@@ -171,6 +171,7 @@ int dict_add(struct q_map *qm, struct prt_info *pi) {
                 if (pi_len > 0 || ((_val_tcphdr->syn & _tcphdr->syn) || (_val_tcphdr->fin & _tcphdr->fin))) {
                     // dup frame
                     for (/* void */; /* void */; /* void */) {
+                        val->dup_count++;
                         if (val->dup) {
                             val = val->dup;
                         } else {

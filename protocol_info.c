@@ -37,10 +37,7 @@ prt_info_t *new_prt_info(void) {
  */
 void *ptr_save(prt_info_t *pi) {
     if (pi->saved) {
-        p_free(pi->pkthdr);
-        p_free(pi->ethhdr);
-        p_free(pi->ipvnhdr);
-        p_free(pi->tcp_udp_hdr);
+        return pi;
     }
     struct pcap_pkthdr *_pkthdr = p_malloc(sizeof(struct pcap_pkthdr));
     memcpy(_pkthdr, pi->pkthdr, sizeof(struct pcap_pkthdr));
@@ -91,6 +88,11 @@ void *ptr_save(prt_info_t *pi) {
         }
     }
     // finished
+    if (pi->len > 0) {
+        void *_data = p_malloc(pi->len);
+        memcpy(_data, pi->data, pi->len);
+        pi->data = _data;
+    }
     pi->saved = 1;
     return pi;
 }
@@ -108,16 +110,19 @@ void prt_info_free(prt_info_t *pi) {
     if (pi->print_message) {
         p_free(pi->print_message);
     }
+    if (pi->data) {
+        p_free(pi->data);
+    }
     return p_free(pi);
 }
 
 /* 对协议信息 输出 */
 int prt_info_out() {
     /*  统计报文数量 */
-    log_info("\nPacket: \n\n");
-    log_info("\t Packet count: %d\n ", _data.pkt_count);
-    log_info("\t IP packet  count: %d\n ", _data.ip_count);
-    log_info("\t IPV4 packet  count: %d\n ", _data.ipv4_count);
+    log_dbg("\nPacket: \n\n");
+    log_dbg("\t Packet count: %d\n ", _data.pkt_count);
+    log_dbg("\t IP packet  count: %d\n ", _data.ip_count);
+    log_dbg("\t IPV4 packet  count: %d\n ", _data.ipv4_count);
 
     // /* 输出已探测应用协议的包个数 */
 
