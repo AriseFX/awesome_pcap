@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 /* 定义调试开关， 当DPI_DEBUG 为1时候， 打开调试， 为0时， 关闭调试信息输出 */
-#define DPI_DEBUG 1
+#define DPI_DEBUG 0
 
 /**
  *  用来规划日志， 

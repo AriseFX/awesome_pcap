@@ -6,6 +6,7 @@ struct g_prt_info_data _data = {
         .head = NULL,
         .tail = NULL,
 };
+static int fd, fd2;
 /*
  * http protocol init
  */
@@ -112,6 +113,7 @@ struct cJSON *g_print_node(struct prt_info *node) {
         }
         cJSON_AddItemToObject(cur, "dup", dup_array);
     }
+    cJSON_AddNumberToObject(cur, "dup_count", node->dup_count);
     return cur;
 }
 void g_print() {
@@ -149,9 +151,9 @@ void g_print() {
         cJSON_AddItemToArray(g_arr, cur);
         node = node->next;
     }
-    log_info("\n\n");
-    log_info("%s\n", cJSON_PrintUnformatted(g));
-    // log_info("%s\n", cJSON_Print(g));
+    log_dbg("\n\n");
+    log_dbg("%s\n", cJSON_PrintUnformatted(g));
+    // log_dbg("%s\n", cJSON_Print(g));
     cJSON_Delete(g);
 }
 void g_map_print() {
@@ -169,18 +171,71 @@ void g_map_print() {
         }
         struct prt_info *node = _index->entry->val;
         cJSON *cur = g_print_node(node);
-        cJSON_AddNumberToObject(cur, "dup_count", _index->entry->dup_count);
-        if (node->next_frame) {
+        cJSON *next_frames = cJSON_AddArrayToObject(cur, "next_frames");
+        cJSON_AddNumberToObject(cur, "dup_main_count", _index->entry->dup_count);
+        for (; node->next_frame;) {
             cJSON *cur_next = g_print_node(node->next_frame);
-            cJSON_AddItemToObject(cur, "next", cur_next);
+            cJSON_AddItemToArray(next_frames, cur_next);
+            node = node->next_frame;
         }
         cJSON_AddItemToArray(g_arr, cur);
         _index = _index->next;
     }
-    log_info("\n\n");
-    log_info("%s\n", cJSON_PrintUnformatted(g));
-    // log_info("%s\n", cJSON_Print(g));
+    log_dbg("\n\n");
+    void *json = cJSON_PrintUnformatted(g);
+    log_dbg("%s\n", json);
+    // log_dbg("%s\n", cJSON_Print(g));
+
+    char *msg = "<script> window._data = ";
+    write(fd2, msg, strlen(msg));
+    write(fd2, json, strlen(json));
+    write(fd2, "</script>\n", 9);
+
+    char buf[1024];
+    for (;;) {
+        size_t n = read(fd, &buf, 1024);
+        if (n < 1) {
+            break;
+        }
+        if (write(fd2, &buf, n) < 1) {
+            break;
+        }
+    }
+    fsync(fd2);
+    close(fd);
+    close(fd2);
     cJSON_Delete(g);
+}
+void handle_tcp() {
+    struct index *_index = _frame_map->index;
+    for (; _index;) {
+        struct prt_info *_pi = _index->entry->val;
+        struct prt_info *pi = _pi;
+        for (; pi;) {
+            int ret = IPPROTO_TCP;
+            struct tcphdr *_tcphdr = (struct tcphdr *) (pi->tcp_udp_hdr);
+            unsigned char *p = pi->data;
+            raxIterator iter;
+            raxStart(&iter, _rax);// Note that 'rt' is the radix tree pointer.
+            size_t p_len = strlen(p);
+            if (!p) break;
+            if (pi->len < 1) goto next_frame;
+            raxSeek(&iter, ">=", p, 1);
+            while (raxNext(&iter)) {
+                if (iter.key_len <= p_len && raxCompare(&iter, "==", p, iter.key_len)) {
+                    ret = ((detec_pro_t)(iter.data))(pi);
+                    _pi->protocol = pi->protocol;
+                    _pi->print_message = pi->print_message;
+                    goto next;
+                }
+            }
+            raxStop(&iter);
+        next_frame:
+            pi = pi->next_frame;
+        }
+    next:
+        _index = _index->next;
+    }
 }
 /*
 * @argv[0] file to parse
@@ -193,9 +248,18 @@ int main(int argc, char *argv[]) {
     /* tcp group map init */
     _frame_map = dictCreate(10);
     int ret = EXIT_SUCCESS;
-    if (argc < 2) {
-        log_err("Please input : %s <pcap file name>\n", argv[0]);
+    fd = open(argv[2], O_RDONLY | O_CLOEXEC, 0666);
+    if (argc < 4) {
+        log_err("Please input : %s <pcap file name> <pcap template file> <result output file>\n", argv[0]);
         return 1;
+    }
+    if (fd == -1) {
+        log_err("open file error %s", strerror(errno));
+    } else {
+        fd2 = open(argv[3], O_CREAT | O_TRUNC | O_RDWR | O_CLOEXEC | O_APPEND, 0666);
+        if (fd2 == -1) {
+            log_err("open file error %s", strerror(errno));
+        }
     }
     /*  log_init() */
     log_dbg("Open pcap %s\n", argv[1]);
@@ -210,6 +274,7 @@ int main(int argc, char *argv[]) {
     pcap_loop(p, -1, data_callback, (unsigned char *) p);
     prt_info_out();
     pcap_close(p);
+    handle_tcp();
     g_map_print();
 clean:
     fflush(stdout);

@@ -53,6 +53,8 @@ typedef struct prt_info {
     struct prt_info *next;      // capture order next ptr
     struct prt_info *next_frame;// next frame -- group by four tuple info
     struct prt_info *dup;       // duplicate list ptr
+    uint dup_count;
+    void *data;                 // data prt
     char *protocol;             // protocol name (Front end display)
     char *print_message;        // custom information (Front end display)
 } prt_info_t;
