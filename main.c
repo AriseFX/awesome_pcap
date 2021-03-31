@@ -248,10 +248,10 @@ void handle_tcp() {
             int ret = IPPROTO_TCP;
             struct tcphdr *_tcphdr = (struct tcphdr *) (pi->tcp_udp_hdr);
             unsigned char *p = pi->data;
+            if (!p) goto next_frame;
             raxIterator iter;
             raxStart(&iter, _rax);// Note that 'rt' is the radix tree pointer.
-            size_t p_len = strlen((const char *) p);
-            if (!p) break;
+            size_t p_len = strlen(p);
             if (pi->len < 1) goto next_frame;
             raxSeek(&iter, ">=", p, 1);
             while (raxNext(&iter)) {
