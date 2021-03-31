@@ -121,11 +121,12 @@ struct cJSON *g_print_node(struct prt_info *node) {
         cJSON_AddNumberToObject(_ipvnhdr, "source_port", ntohs(((struct udphdr *) (node->tcp_udp_hdr))->source));
         /* destination port */
         cJSON_AddNumberToObject(_ipvnhdr, "destination_port", ntohs(((struct udphdr *) (node->tcp_udp_hdr))->dest));
-#endif
+#elif defined(__APPLE__)
         /* source port */
         cJSON_AddNumberToObject(_ipvnhdr, "source_port", ntohs(((struct udphdr *) (node->tcp_udp_hdr))->uh_sport));
         /* destination port */
         cJSON_AddNumberToObject(_ipvnhdr, "destination_port", ntohs(((struct udphdr *) (node->tcp_udp_hdr))->uh_dport));
+#endif
     }
     /* print user-lever data */
     if (node->protocol) {
