@@ -204,8 +204,8 @@ int dict_add(struct q_map *qm, struct prt_info *pi) {
                     ((_val_tcphdr->syn & _tcphdr->syn) ||
                      (_val_tcphdr->fin & _tcphdr->fin))
 #elif defined(__APPLE__)
-                    (((_val_tcphdr->th_flags & TH_SYN) & (_tcphdr->th_flags & TH_SYN)) ||
-                     ((_val_tcphdr->th_flags & TH_FIN) & (_tcphdr->th_flags & TH_FIN)))
+                    (((_val_tcphdr->th_flags & TH_SYN) == TH_SYN & (_tcphdr->th_flags & TH_SYN) == TH_SYN) ||
+                     ((_val_tcphdr->th_flags & TH_FIN) == TH_FIN & (_tcphdr->th_flags & TH_FIN) == TH_FIN))
 #endif
                 ) {
                     // dup frame

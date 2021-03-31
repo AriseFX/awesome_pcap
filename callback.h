@@ -7,6 +7,7 @@
  * 0-2 max-prefix
  */
 #define MAC_FMT "%x:%x:%x:%x:%x:%x"
+#define MAC_SIZE sizeof(MAC_FMT)
 #define MAC(addr)                                              \
     ((unsigned char *) &addr)[0],                              \
             ((unsigned char *) &addr)[1],                      \
@@ -18,6 +19,7 @@
  * Display an IP address in readable format.
  */
 #define NIPQUAD_FMT "%u.%u.%u.%u"
+#define NIPQUAD_SIZE sizeof(NIPQUAD_FMT)
 #define NIPQUAD(addr)                     \
     ((unsigned char *) &addr)[0],         \
             ((unsigned char *) &addr)[1], \
