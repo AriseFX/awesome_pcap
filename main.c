@@ -39,8 +39,8 @@ struct cJSON *g_print_node(struct prt_info *node) {
     cJSON_AddBoolToObject(cur, "istcp", node->istcp);
     /* ethhdr */
     cJSON *_ethhdr = cJSON_CreateObject();
-    unsigned char h_source[sizeof(MAC_FMT)];
-    unsigned char h_dest[sizeof(MAC_FMT)];
+    unsigned char h_source[MAC_SIZE];
+    unsigned char h_dest[MAC_SIZE];
     snprintf((char *) h_source, MAC_SIZE, MAC_FMT, MAC(node->ethhdr->h_source));
     snprintf((char *) h_dest, MAC_SIZE, MAC_FMT, MAC(node->ethhdr->h_dest));
     /* source mac address */
@@ -62,7 +62,7 @@ struct cJSON *g_print_node(struct prt_info *node) {
             snprintf((char *) saddr, NIPQUAD_SIZE, NIPQUAD_FMT, NIPQUAD(((struct iphdr *) (node->ipvnhdr))->saddr));
             cJSON_AddStringToObject(_ipvnhdr, "saddr", saddr);
             /* destination ip address */
-            snprintf((char *) saddr, NIPQUAD_SIZE, NIPQUAD_FMT, NIPQUAD(((struct iphdr *) (node->ipvnhdr))->daddr));
+            snprintf((char *) daddr, NIPQUAD_SIZE, NIPQUAD_FMT, NIPQUAD(((struct iphdr *) (node->ipvnhdr))->daddr));
             cJSON_AddStringToObject(_ipvnhdr, "daddr", daddr);
 #elif defined(__APPLE__)
             /* source ip address */
@@ -121,11 +121,12 @@ struct cJSON *g_print_node(struct prt_info *node) {
         cJSON_AddNumberToObject(_ipvnhdr, "source_port", ntohs(((struct udphdr *) (node->tcp_udp_hdr))->source));
         /* destination port */
         cJSON_AddNumberToObject(_ipvnhdr, "destination_port", ntohs(((struct udphdr *) (node->tcp_udp_hdr))->dest));
-#endif
+#elif defined(__APPLE__)
         /* source port */
         cJSON_AddNumberToObject(_ipvnhdr, "source_port", ntohs(((struct udphdr *) (node->tcp_udp_hdr))->uh_sport));
         /* destination port */
         cJSON_AddNumberToObject(_ipvnhdr, "destination_port", ntohs(((struct udphdr *) (node->tcp_udp_hdr))->uh_dport));
+#endif
     }
     /* print user-lever data */
     if (node->protocol) {

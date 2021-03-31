@@ -8,6 +8,7 @@
 #define pmalloc_size(p) malloc_size(p)
 #endif
 #ifdef __GLIBC__
+#include <malloc.h>
 #define pmalloc_size(p) malloc_usable_size(p)
 #endif
 size_t pmalloc_used_memory(void);
