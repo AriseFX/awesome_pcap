@@ -62,7 +62,7 @@ struct cJSON *g_print_node(struct prt_info *node) {
             snprintf((char *) saddr, NIPQUAD_SIZE, NIPQUAD_FMT, NIPQUAD(((struct iphdr *) (node->ipvnhdr))->saddr));
             cJSON_AddStringToObject(_ipvnhdr, "saddr", saddr);
             /* destination ip address */
-            snprintf((char *) saddr, NIPQUAD_SIZE, NIPQUAD_FMT, NIPQUAD(((struct iphdr *) (node->ipvnhdr))->daddr));
+            snprintf((char *) daddr, NIPQUAD_SIZE, NIPQUAD_FMT, NIPQUAD(((struct iphdr *) (node->ipvnhdr))->daddr));
             cJSON_AddStringToObject(_ipvnhdr, "daddr", daddr);
 #elif defined(__APPLE__)
             /* source ip address */
