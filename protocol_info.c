@@ -92,6 +92,8 @@ void *ptr_save(prt_info_t *pi) {
         void *_data = p_malloc(pi->len);
         memcpy(_data, pi->data, pi->len);
         pi->data = _data;
+    } else {
+        pi->data = NULL;
     }
     pi->saved = 1;
     return pi;
