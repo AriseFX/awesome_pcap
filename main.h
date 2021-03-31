@@ -16,20 +16,41 @@
 #include <unistd.h>
 
 #include <arpa/inet.h>
-#include <linux/if_ether.h>
 
+#ifdef __linux__
+#include <linux/if_ether.h>
 #include <linux/ip.h>
 #include <linux/ipv6.h>
-#include <netinet/in.h>
-
 #include <linux/tcp.h>
 #include <linux/udp.h>
+#endif
 
-#include <pcap/pcap.h>
+#ifdef __APPLE__
+#include <net/ethernet.h>
+#include <netinet/if_ether.h>
+#include <netinet/ip.h>
+#include <netinet/ip6.h>
+#include <netinet/tcp.h>
+#include <netinet/udp.h>
+#define ethhdr ether_header
+#define h_proto ether_type
+#define ETH_P_IP ETHERTYPE_IP
+#define ETH_P_IPV6 ETHERTYPE_IPV6
+#define h_source ether_shost
+#define h_dest ether_dhost
+#define iphdr ip
+#define ipv6hdr ip6_hdr
+#define frag_off ip_off
+#endif
+
+#include <netinet/in.h>
+
+
 #include "./deps/src/rax/rax.h"
+#include <pcap/pcap.h>
 
-#include "log.h"
 #include "atomicvar.h"
+#include "log.h"
 #include "protocol_info.h"
 
 #include "callback.h"
@@ -40,8 +61,8 @@
 
 #ifdef PRO_TYPES_SSH
 
-#include "ssh.h"
 #include "http.h"
+#include "ssh.h"
 
 #endif /* PRO_TYPES_SSH */
 #include "four_tuple_map.h"

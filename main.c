@@ -10,7 +10,7 @@ static int fd, fd2;
 /*
  * http protocol init
  */
-static unsigned char *METHODS[] = {
+static char *METHODS[] = {
         "CONNECT",
         "DELETE",
         "GET",
@@ -25,7 +25,7 @@ void init_pro_detec() {
     _rax = raxNew();
     int method_len = sizeof(METHODS) / sizeof(char *);
     for (int i = 0; i < method_len; i++) {
-        raxInsert(_rax, METHODS[i], strlen(METHODS[i]), detec_http, NULL);
+        raxInsert(_rax, (unsigned char *) METHODS[i], strlen(METHODS[i]), detec_http, NULL);
     }
 }
 struct cJSON *g_print_node(struct prt_info *node) {
@@ -41,29 +41,37 @@ struct cJSON *g_print_node(struct prt_info *node) {
     cJSON *_ethhdr = cJSON_CreateObject();
     unsigned char h_source[sizeof(MAC_FMT)];
     unsigned char h_dest[sizeof(MAC_FMT)];
-    sprintf(h_source, MAC_FMT, MAC(node->ethhdr->h_source));
-    sprintf(h_dest, MAC_FMT, MAC(node->ethhdr->h_dest));
+    snprintf((char *) h_source, MAC_SIZE, MAC_FMT, MAC(node->ethhdr->h_source));
+    snprintf((char *) h_dest, MAC_SIZE, MAC_FMT, MAC(node->ethhdr->h_dest));
     /* source mac address */
-    cJSON_AddStringToObject(_ethhdr, "h_source", h_source);
+    cJSON_AddStringToObject(_ethhdr, (const char *) "h_source", (const char *) h_source);
     /* destination mac address */
-    cJSON_AddStringToObject(_ethhdr, "h_dest", h_dest);
+    cJSON_AddStringToObject(_ethhdr, (const char *) "h_dest", (const char *) h_dest);
     /* ethernet protocol */
-    cJSON_AddStringToObject(_ethhdr, "h_proto", ntohs(node->ethhdr->h_proto) == ETH_P_IP ? "ipv4" : "ipv6");
-    cJSON_AddItemToObject(cur, "ethhdr", _ethhdr);
+    cJSON_AddStringToObject(_ethhdr, (const char *) "h_proto", (const char *) (ntohs(node->ethhdr->h_proto) == ETH_P_IP ? "ipv4" : "ipv6"));
+    cJSON_AddItemToObject(cur, (const char *) "ethhdr", _ethhdr);
     /* ipvn packet */
     cJSON *_ipvnhdr = cJSON_CreateObject();
     void *__ipvnhdr = node->ipvnhdr;
-    unsigned char saddr[sizeof(NIPQUAD_FMT)];
-    unsigned char daddr[sizeof(NIPQUAD_FMT)];
+    unsigned char saddr[NIPQUAD_SIZE];
+    unsigned char daddr[NIPQUAD_SIZE];
     switch (ntohs(node->ethhdr->h_proto)) {
         case ETH_P_IP:// ipv4
+#ifdef __linux__
             /* source ip address */
-            sprintf(saddr, NIPQUAD_FMT, NIPQUAD(((struct iphdr *) (node->ipvnhdr))->saddr));
+            snprintf((char *) saddr, NIPQUAD_SIZE, NIPQUAD_FMT, NIPQUAD(((struct iphdr *) (node->ipvnhdr))->saddr));
             cJSON_AddStringToObject(_ipvnhdr, "saddr", saddr);
             /* destination ip address */
-            sprintf(daddr, NIPQUAD_FMT, NIPQUAD(((struct iphdr *) (node->ipvnhdr))->daddr));
+            snprintf((char *) saddr, NIPQUAD_SIZE, NIPQUAD_FMT, NIPQUAD(((struct iphdr *) (node->ipvnhdr))->daddr));
             cJSON_AddStringToObject(_ipvnhdr, "daddr", daddr);
-
+#elif defined(__APPLE__)
+            /* source ip address */
+            snprintf((char *) saddr, NIPQUAD_SIZE, NIPQUAD_FMT, NIPQUAD(((struct iphdr *) (node->ipvnhdr))->ip_src.s_addr));
+            cJSON_AddStringToObject(_ipvnhdr, "saddr", (const char *) saddr);
+            // /* destination ip address */
+            snprintf((char *) daddr, NIPQUAD_SIZE, NIPQUAD_FMT, NIPQUAD(((struct iphdr *) (node->ipvnhdr))->ip_dst.s_addr));
+            cJSON_AddStringToObject(_ipvnhdr, "daddr", (const char *) daddr);
+#endif
         case ETH_P_IPV6:// ipv6
         default:
             break;
@@ -72,6 +80,7 @@ struct cJSON *g_print_node(struct prt_info *node) {
     cJSON_AddNumberToObject(cur, "len", node->len);
     cJSON_AddItemToObject(cur, "ipvnhdr", _ipvnhdr);
     if (node->istcp) {
+#ifdef __linux__
         /* source port */
         cJSON_AddNumberToObject(_ipvnhdr, "source_port", ntohs(((struct tcphdr *) (node->tcp_udp_hdr))->source));
         /* destination port */
@@ -88,11 +97,35 @@ struct cJSON *g_print_node(struct prt_info *node) {
         cJSON_AddBoolToObject(cur, "urg", ((struct tcphdr *) (node->tcp_udp_hdr))->urg);
         cJSON_AddBoolToObject(cur, "ece", ((struct tcphdr *) (node->tcp_udp_hdr))->ece);
         cJSON_AddBoolToObject(cur, "cwr", ((struct tcphdr *) (node->tcp_udp_hdr))->cwr);
+#elif defined(__APPLE__)
+        /* source port */
+        cJSON_AddNumberToObject(_ipvnhdr, "source_port", ntohs(((struct tcphdr *) (node->tcp_udp_hdr))->th_sport));
+        /* destination port */
+        cJSON_AddNumberToObject(_ipvnhdr, "destination_port", ntohs(((struct tcphdr *) (node->tcp_udp_hdr))->th_dport));
+        /* ack_seq seq syn ack fin rst */
+        cJSON_AddNumberToObject(cur, "ack_seq", ntohl(((struct tcphdr *) (node->tcp_udp_hdr))->th_ack));
+        cJSON_AddNumberToObject(cur, "seq", ntohl(((struct tcphdr *) (node->tcp_udp_hdr))->th_seq));
+        cJSON_AddNumberToObject(cur, "doff", ntohl(((struct tcphdr *) (node->tcp_udp_hdr))->th_off));
+        cJSON_AddBoolToObject(cur, "ack", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags | TH_ACK) == TH_ACK);
+        cJSON_AddBoolToObject(cur, "syn", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags | TH_SYN) == TH_SYN);
+        cJSON_AddBoolToObject(cur, "fin", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags | TH_FIN) == TH_FIN);
+        cJSON_AddBoolToObject(cur, "rst", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags | TH_RST) == TH_RST);
+        cJSON_AddBoolToObject(cur, "psh", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags | TH_PUSH) == TH_PUSH);
+        cJSON_AddBoolToObject(cur, "urg", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags | TH_URG) == TH_URG);
+        cJSON_AddBoolToObject(cur, "ece", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags | TH_ECE) == TH_ECE);
+        cJSON_AddBoolToObject(cur, "cwr", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags | TH_CWR) == TH_CWR);
+#endif
     } else {
+#ifdef __linux__
         /* source port */
         cJSON_AddNumberToObject(_ipvnhdr, "source_port", ntohs(((struct udphdr *) (node->tcp_udp_hdr))->source));
         /* destination port */
         cJSON_AddNumberToObject(_ipvnhdr, "destination_port", ntohs(((struct udphdr *) (node->tcp_udp_hdr))->dest));
+#endif
+        /* source port */
+        cJSON_AddNumberToObject(_ipvnhdr, "source_port", ntohs(((struct udphdr *) (node->tcp_udp_hdr))->uh_sport));
+        /* destination port */
+        cJSON_AddNumberToObject(_ipvnhdr, "destination_port", ntohs(((struct udphdr *) (node->tcp_udp_hdr))->uh_dport));
     }
     /* print user-lever data */
     if (node->protocol) {
@@ -218,7 +251,7 @@ void handle_tcp() {
             if (!p) goto next_frame;
             raxIterator iter;
             raxStart(&iter, _rax);// Note that 'rt' is the radix tree pointer.
-            size_t p_len = strlen(p);
+            size_t p_len = strlen((const char *) p);
             if (pi->len < 1) goto next_frame;
             raxSeek(&iter, ">=", p, 1);
             while (raxNext(&iter)) {

@@ -67,20 +67,35 @@ int dict_add(struct q_map *qm, struct prt_info *pi) {
     unsigned short source = 0, dest = 0;
     if (ntohs(pi->ethhdr->h_proto) == ETH_P_IP) {
         struct iphdr *_iphdr = (struct iphdr *) (pi->ipvnhdr);
+#ifdef __linux__
         saddr = _iphdr->saddr;
         daddr = _iphdr->daddr;
+#elif defined(__APPLE__)
+        saddr = _iphdr->ip_src.s_addr;
+        daddr = _iphdr->ip_dst.s_addr;
+#endif
     } /* else {} */// TODO ipv6
 
     base |= ((long) (saddr ^ daddr) << 8);
     if (pi->istcp) {
         struct tcphdr *_tcphdr = (struct tcphdr *) (pi->tcp_udp_hdr);
+#ifdef __linux__
         source = _tcphdr->source;
         dest = _tcphdr->dest;
+#elif defined(__APPLE__)
+        source = _tcphdr->th_sport;
+        dest = _tcphdr->th_dport;
+#endif
     } /* else {} */// TODO udp
     else {
         struct udphdr *_udphdr = (struct udphdr *) (pi->tcp_udp_hdr);
+#ifdef __linux__
         source = _udphdr->source;
         dest = _udphdr->dest;
+#elif defined(__APPLE__)
+        source = _udphdr->uh_sport;
+        dest = _udphdr->uh_dport;
+#endif
     }
     if (saddr < daddr) {
         unsigned int tmp = saddr;
@@ -154,9 +169,15 @@ int dict_add(struct q_map *qm, struct prt_info *pi) {
             struct tcphdr *_val_tcphdr = (struct tcphdr *) (val->tcp_udp_hdr);
             struct iphdr *_iphdr = (struct iphdr *) (pi->ipvnhdr);
             struct iphdr *_val_iphdr = (struct iphdr *) (val->ipvnhdr);
+#ifdef __linux__
             size_t pi_len = ntohs(_iphdr->tot_len) - _iphdr->ihl * 4 - _tcphdr->doff * 4;
             size_t val_len = ntohs(_val_iphdr->tot_len) - _val_iphdr->ihl * 4 - _val_tcphdr->doff * 4;
+#elif defined(__APPLE__)
+            size_t pi_len = ntohs(_iphdr->ip_len) - _iphdr->ip_hl * 4 - _tcphdr->th_off * 4;
+            size_t val_len = ntohs(_val_iphdr->ip_len) - _val_iphdr->ip_hl * 4 - _val_tcphdr->th_off * 4;
+#endif
             if (// four tuple info check
+#ifdef __linux__
                     _tcphdr->dest == _val_tcphdr->dest &&
                     _tcphdr->source == _val_tcphdr->source &&
                     _iphdr->saddr == _val_iphdr->saddr &&
@@ -165,10 +186,28 @@ int dict_add(struct q_map *qm, struct prt_info *pi) {
                     _tcphdr->seq == _val_tcphdr->seq &&
                     // ack_seq check
                     _tcphdr->ack_seq == _val_tcphdr->ack_seq &&
+#elif defined(__APPLE__)
+                    _tcphdr->th_dport == _val_tcphdr->th_dport &&
+                    _tcphdr->th_sport == _val_tcphdr->th_sport &&
+                    _iphdr->ip_src.s_addr == _val_iphdr->ip_src.s_addr &&
+                    _iphdr->ip_dst.s_addr == _val_iphdr->ip_dst.s_addr &&
+                    // seq equal ?
+                    _tcphdr->th_seq == _val_tcphdr->th_seq &&
+                    // ack_seq check
+                    _tcphdr->th_ack == _val_tcphdr->th_ack &&
+#endif
                     // tcp segment len check
                     pi_len == val_len) {
                 // https://github.com/wireshark/wireshark/blob/2484ad2f72d4c42720d3368329acaca9045ee096/epan/dissectors/packet-tcp.c#L2215-L2226
-                if (pi_len > 0 || ((_val_tcphdr->syn & _tcphdr->syn) || (_val_tcphdr->fin & _tcphdr->fin))) {
+                if (pi_len > 0 ||
+#ifdef __linux__
+                    ((_val_tcphdr->syn & _tcphdr->syn) ||
+                     (_val_tcphdr->fin & _tcphdr->fin))
+#elif defined(__APPLE__)
+                    (((_val_tcphdr->th_flags & TH_SYN) == TH_SYN & (_tcphdr->th_flags & TH_SYN) == TH_SYN) ||
+                     ((_val_tcphdr->th_flags & TH_FIN) == TH_FIN & (_tcphdr->th_flags & TH_FIN) == TH_FIN))
+#endif
+                ) {
                     // dup frame
                     for (/* void */; /* void */; /* void */) {
                         val->dup_count++;

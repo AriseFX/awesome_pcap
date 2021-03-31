@@ -7,6 +7,15 @@ ExternalProject_Add(cJSON
     CMAKE_COMMAND cmake .. -DENABLE_CJSON_UTILS=On -DENABLE_CJSON_TEST=Off -DCMAKE_INSTALL_PREFIX=./usr
 )   
 # .so dir set
-set(CJSON_LIB       ${WROKDIR}/deps/src/cJSON-build/libcjson.so)
+if (UNIX)
+    if (APPLE)
+        set(CJSON_LIB       ${WROKDIR}/deps/src/cJSON-build/libcjson.dylib)
+    else (APPLE)
+        set(CJSON_LIB       ${WROKDIR}/deps/src/cJSON-build/libcjson.so)
+    endif (APPLE)
+endif (UNIX)
+
+
+
 # .h dir set
 set(CJSON_DIR   ${WROKDIR}/deps/src/cJSON)

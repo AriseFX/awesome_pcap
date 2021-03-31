@@ -13,13 +13,20 @@ int detec_http(struct prt_info *pi) {
     struct tcphdr *_tcphdr = (struct tcphdr *) pi->tcp_udp_hdr;
 
     struct iphdr *_iphdr = (struct iphdr *) pi->ipvnhdr;
-    //TODO 抽出各协议详细的校验
+//TODO 抽出各协议详细的校验
+#ifdef __linux__
     if ((ntohs(_iphdr->tot_len) - _iphdr->ihl * 4 - _tcphdr->doff * 4) < 5) {
         return PRO_TYPES_HTTP;
     }
     unsigned char *p = (unsigned char *) _tcphdr + _tcphdr->doff * 4;
+#elif defined(__APPLE__)
+    if ((ntohs(_iphdr->ip_len) - _iphdr->ip_hl * 4 - _tcphdr->th_off * 4) < 5) {
+        return PRO_TYPES_HTTP;
+    }
+    unsigned char *p = (unsigned char *) _tcphdr + _tcphdr->th_off * 4;
+#endif
     pi->protocol = "HTTP";
-    size_t sz = strlen(p) * sizeof(char);
+    size_t sz = strlen((const char *) p) * sizeof(char);
     char *message = p_malloc(sz);
     memcpy(message, p, sz);
     pi->print_message = message;
