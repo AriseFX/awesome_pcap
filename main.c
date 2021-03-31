@@ -106,14 +106,14 @@ struct cJSON *g_print_node(struct prt_info *node) {
         cJSON_AddNumberToObject(cur, "ack_seq", ntohl(((struct tcphdr *) (node->tcp_udp_hdr))->th_ack));
         cJSON_AddNumberToObject(cur, "seq", ntohl(((struct tcphdr *) (node->tcp_udp_hdr))->th_seq));
         cJSON_AddNumberToObject(cur, "doff", ntohl(((struct tcphdr *) (node->tcp_udp_hdr))->th_off));
-        cJSON_AddBoolToObject(cur, "ack", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags | TH_ACK) == TH_ACK);
-        cJSON_AddBoolToObject(cur, "syn", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags | TH_SYN) == TH_SYN);
-        cJSON_AddBoolToObject(cur, "fin", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags | TH_FIN) == TH_FIN);
-        cJSON_AddBoolToObject(cur, "rst", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags | TH_RST) == TH_RST);
-        cJSON_AddBoolToObject(cur, "psh", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags | TH_PUSH) == TH_PUSH);
-        cJSON_AddBoolToObject(cur, "urg", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags | TH_URG) == TH_URG);
-        cJSON_AddBoolToObject(cur, "ece", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags | TH_ECE) == TH_ECE);
-        cJSON_AddBoolToObject(cur, "cwr", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags | TH_CWR) == TH_CWR);
+        cJSON_AddBoolToObject(cur, "ack", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags & TH_ACK) == TH_ACK);
+        cJSON_AddBoolToObject(cur, "syn", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags & TH_SYN) == TH_SYN);
+        cJSON_AddBoolToObject(cur, "fin", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags & TH_FIN) == TH_FIN);
+        cJSON_AddBoolToObject(cur, "rst", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags & TH_RST) == TH_RST);
+        cJSON_AddBoolToObject(cur, "psh", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags & TH_PUSH) == TH_PUSH);
+        cJSON_AddBoolToObject(cur, "urg", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags & TH_URG) == TH_URG);
+        cJSON_AddBoolToObject(cur, "ece", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags & TH_ECE) == TH_ECE);
+        cJSON_AddBoolToObject(cur, "cwr", (((struct tcphdr *) (node->tcp_udp_hdr))->th_flags & TH_CWR) == TH_CWR);
 #endif
     } else {
 #ifdef __linux__
