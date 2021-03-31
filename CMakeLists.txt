@@ -76,7 +76,7 @@ message(
   ${cJSONDownload}
   "${ColourReset}"
 )
-target_link_libraries(pcap_demo ${rax_LIB} ${CJSON_LIB})
+# target_link_libraries(pcap_demo ${CJSON_LIB})
 target_include_directories(pcap_demo PRIVATE ${CJSON_DIR} ${rax_DIR})
 
 if ((CMAKE_COMPILER_IS_GNUCC ) AND ( mode STREQUAL "release"))
@@ -108,6 +108,7 @@ message(
 )
 target_link_libraries(
   ${PROJECT_NAME}
+  ${CJSON_LIB}
   ${PCAP_LIBRARY} 
   -lpthread
   -lm

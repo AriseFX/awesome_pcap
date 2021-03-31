@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include "pmalloc.h"
 #include "atomicvar.h"
 #include "stdlib.h"

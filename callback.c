@@ -79,10 +79,12 @@ static int ipv4_packet_process(struct prt_info *pi) {
     struct iphdr *_iphdr = (struct iphdr *) (pi->ipvnhdr);
     if ((ntohs(_iphdr->frag_off) & 0x1FFF) != 0)
         return PRO_UNKNOWN;
-
+#ifdef __linux__
     log_dbg("source ip     \t\t" NIPQUAD_FMT "\n", NIPQUAD(_iphdr->saddr));
     log_dbg("destination ip\t\t" NIPQUAD_FMT "\n", NIPQUAD(_iphdr->daddr));
     log_dbg("iphdr checksum16\t0x%x\n", ntohs(_iphdr->check));
+#elif defined(__APPLE__)
+#endif
     /* Transmission Control Protocol detection */
     int a = detection_protocol_types(pi);
 
@@ -107,35 +109,50 @@ static int detection_protocol_types(struct prt_info *pi) {
     int i;
     struct iphdr *_iphdr = (struct iphdr *) (pi->ipvnhdr);
     /* protocol assert */
-    switch (_iphdr->protocol) {
+    switch (
+#ifdef __linux__
+            _iphdr->protocol
+#elif defined(__APPLE__)
+            _iphdr->ip_p
+#endif
+    ) {
         case IPPROTO_TCP: /*  TCP  */
             ret = IPPROTO_TCP;
             pi->istcp = 1;
-            pi->tcp_udp_hdr = (struct tcphdr *) offsetptr((unsigned char *) _iphdr, (_iphdr->ihl * 4));
-            struct tcphdr *_tcphdr = (struct tcphdr *) (pi->tcp_udp_hdr);
+            pi->tcp_udp_hdr = (struct tcphdr *) offsetptr((unsigned char *) _iphdr,
+#ifdef __linux__
+                                                          (_iphdr->ihl * 4));
             log_dbg("source port     \t%d\n", ntohs(_tcphdr->source));
             log_dbg("destination port\t%u\n", ntohs(_tcphdr->dest));
             log_dbg("ack_seq \t\t\t%u\n", ntohl(_tcphdr->ack_seq));
             log_dbg("seq \t\t\t%u\n", ntohl(_tcphdr->seq));
             log_dbg("syn \t\t\t%u\n", (_tcphdr->syn));
+            // _tcphdr->th_flags
             log_dbg("ack \t\t\t%u\n", (_tcphdr->ack));
             log_dbg("fin \t\t\t%u\n", (_tcphdr->fin));
             log_dbg("rst \t\t\t%u\n", (_tcphdr->rst));
+#elif __APPLE__
+                                                          (_iphdr->ip_hl * 4));
+#endif
+            struct tcphdr *_tcphdr = (struct tcphdr *) (pi->tcp_udp_hdr);
+#ifdef __linux__
             pi->len = ntohs(_iphdr->tot_len) - _iphdr->ihl * 4 - _tcphdr->doff * 4;
             pi->data = offsetptr((unsigned char *) _tcphdr, _tcphdr->doff * 4);
-            // for (i = 0; i < PRO_TYPES_MAX; i++) {
-            //     if (pi->pro_detec[i].flag == FLAG_TCP) {
-            //         if ((pi->pro_detec[i].pro_detec != NULL) && pi->pro_detec[i].pro_detec(pi) != 0) {
-            //             ret = i; /*  i指代某种协议类型 */
-            //             break;
-            //         }
-            //     }
-            // }
+#elif defined(__APPLE__)
+            pi->len = ntohs(_iphdr->ip_len) - _iphdr->ip_hl * 4 - _tcphdr->th_off * 4;
+            pi->data = offsetptr((unsigned char *) _tcphdr, _tcphdr->th_off * 4);
+#endif
             break;
         case IPPROTO_UDP: /*  UDP  */
             ret = IPPROTO_UDP;
             pi->istcp = 0;
-            pi->tcp_udp_hdr = (struct udphdr *) offsetptr((unsigned char *) _iphdr, (_iphdr->ihl * 4));
+            pi->tcp_udp_hdr = (struct udphdr *) offsetptr((unsigned char *) _iphdr,
+#ifdef __linux__
+                                                          (_iphdr->ihl * 4)
+#elif defined(__APPLE__)
+                                                          (_iphdr->ip_hl * 4)
+#endif
+            );
             struct udphdr *_udphdr = (struct udphdr *) (pi->tcp_udp_hdr);
             for (i = 0; i < PRO_TYPES_MAX; i++) {
                 if (pi->pro_detec[i].flag == FLAG_UDP) {

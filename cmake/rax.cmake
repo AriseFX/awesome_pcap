@@ -8,6 +8,6 @@ ExternalProject_Add(rax
     INSTALL_COMMAND ""
 )   
 # .so dir set
-set(rax_LIB       ${WROKDIR}/deps/src/rax-build/librax.so)
+# set(rax_LIB       ${WROKDIR}/deps/src/rax-build/librax.so)
 # .h dir set
 set(rax_DIR   ${WROKDIR}/deps/src/rax)
