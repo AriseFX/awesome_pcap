@@ -39,8 +39,8 @@ struct cJSON *g_print_node(struct prt_info *node) {
     cJSON_AddBoolToObject(cur, "istcp", node->istcp);
     /* ethhdr */
     cJSON *_ethhdr = cJSON_CreateObject();
-    unsigned char h_source[sizeof(MAC_FMT)];
-    unsigned char h_dest[sizeof(MAC_FMT)];
+    unsigned char h_source[MAC_SIZE];
+    unsigned char h_dest[MAC_SIZE];
     snprintf((char *) h_source, MAC_SIZE, MAC_FMT, MAC(node->ethhdr->h_source));
     snprintf((char *) h_dest, MAC_SIZE, MAC_FMT, MAC(node->ethhdr->h_dest));
     /* source mac address */
