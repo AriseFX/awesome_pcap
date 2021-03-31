@@ -45,7 +45,6 @@ include(cmake/rax.cmake)   # rax
 if (build STREQUAL "true") 
   return()
 endif()
-
 if ( mode STREQUAL "debug") 
   SET(CMAKE_BUILD_TYPE "Debug")  
   message(
@@ -70,15 +69,15 @@ add_executable(pcap_demo
 ${DIR_SRCS}
 )
 
-add_dependencies(pcap_demo cJSON)
+add_dependencies(pcap_demo cJSON rax)
 message(
   STATUS
   "${BoldRed}"
   ${cJSONDownload}
   "${ColourReset}"
 )
-target_link_libraries(pcap_demo ${CJSON_LIB})
-target_include_directories(pcap_demo PRIVATE ${CJSON_DIR})
+target_link_libraries(pcap_demo ${rax_LIB} ${CJSON_LIB})
+target_include_directories(pcap_demo PRIVATE ${CJSON_DIR} ${rax_DIR})
 
 if ((CMAKE_COMPILER_IS_GNUCC ) AND ( mode STREQUAL "release"))
   message(
