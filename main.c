@@ -27,6 +27,9 @@ void init_pro_detec() {
     for (int i = 0; i < method_len; i++) {
         raxInsert(_rax, (unsigned char *) METHODS[i], strlen(METHODS[i]), detec_http, NULL);
     }
+    /* redis procotol(RESP) init
+    */
+    raxInsert(_rax, "*", 1, detec_resp, NULL);
 }
 struct cJSON *g_print_node(struct prt_info *node) {
     if (!node) {

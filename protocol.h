@@ -4,6 +4,7 @@
 #define PRO_UNKNOWN 0
 #define PRO_TYPES_SSH 1
 #define PRO_TYPES_HTTP 2
+#define PRO_TYPES_RESP 3
 
 /* 当前支持协议解析的最后协议， 当添加新协议的时候， 需要更改当前最后协议 */
 #define PRO_LAST PRO_TYPES_HTTP

@@ -62,6 +62,7 @@
 #ifdef PRO_TYPES_SSH
 
 #include "http.h"
+#include "resp.h"
 #include "ssh.h"
 
 #endif /* PRO_TYPES_SSH */
