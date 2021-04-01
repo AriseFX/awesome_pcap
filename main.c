@@ -27,6 +27,9 @@ void init_pro_detec() {
     for (int i = 0; i < method_len; i++) {
         raxInsert(_rax, (unsigned char *) METHODS[i], strlen(METHODS[i]), detec_http, NULL);
     }
+    /* redis procotol(RESP) init
+    */
+    raxInsert(_rax, "*", 1, detec_resp, NULL);
 }
 struct cJSON *g_print_node(struct prt_info *node) {
     if (!node) {
@@ -62,7 +65,7 @@ struct cJSON *g_print_node(struct prt_info *node) {
             snprintf((char *) saddr, NIPQUAD_SIZE, NIPQUAD_FMT, NIPQUAD(((struct iphdr *) (node->ipvnhdr))->saddr));
             cJSON_AddStringToObject(_ipvnhdr, "saddr", saddr);
             /* destination ip address */
-            snprintf((char *) saddr, NIPQUAD_SIZE, NIPQUAD_FMT, NIPQUAD(((struct iphdr *) (node->ipvnhdr))->daddr));
+            snprintf((char *) daddr, NIPQUAD_SIZE, NIPQUAD_FMT, NIPQUAD(((struct iphdr *) (node->ipvnhdr))->daddr));
             cJSON_AddStringToObject(_ipvnhdr, "daddr", daddr);
 #elif defined(__APPLE__)
             /* source ip address */
@@ -121,11 +124,12 @@ struct cJSON *g_print_node(struct prt_info *node) {
         cJSON_AddNumberToObject(_ipvnhdr, "source_port", ntohs(((struct udphdr *) (node->tcp_udp_hdr))->source));
         /* destination port */
         cJSON_AddNumberToObject(_ipvnhdr, "destination_port", ntohs(((struct udphdr *) (node->tcp_udp_hdr))->dest));
-#endif
+#elif defined(__APPLE__)
         /* source port */
         cJSON_AddNumberToObject(_ipvnhdr, "source_port", ntohs(((struct udphdr *) (node->tcp_udp_hdr))->uh_sport));
         /* destination port */
         cJSON_AddNumberToObject(_ipvnhdr, "destination_port", ntohs(((struct udphdr *) (node->tcp_udp_hdr))->uh_dport));
+#endif
     }
     /* print user-lever data */
     if (node->protocol) {
@@ -257,9 +261,11 @@ void handle_tcp() {
             while (raxNext(&iter)) {
                 if (iter.key_len <= p_len && raxCompare(&iter, "==", p, iter.key_len)) {
                     ret = ((detec_pro_t)(iter.data))(pi);
-                    _pi->protocol = pi->protocol;
-                    _pi->print_message = pi->print_message;
-                    goto next;
+                    if (ret != PRO_UNKNOWN) {
+                        _pi->protocol = pi->protocol;
+                        _pi->print_message = pi->print_message;
+                        goto next;
+                    }
                 }
             }
             raxStop(&iter);
