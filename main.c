@@ -258,9 +258,11 @@ void handle_tcp() {
             while (raxNext(&iter)) {
                 if (iter.key_len <= p_len && raxCompare(&iter, "==", p, iter.key_len)) {
                     ret = ((detec_pro_t)(iter.data))(pi);
-                    _pi->protocol = pi->protocol;
-                    _pi->print_message = pi->print_message;
-                    goto next;
+                    if (ret != PRO_UNKNOWN) {
+                        _pi->protocol = pi->protocol;
+                        _pi->print_message = pi->print_message;
+                        goto next;
+                    }
                 }
             }
             raxStop(&iter);
